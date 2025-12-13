@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
 
 const HaloRing = ({
@@ -152,19 +153,29 @@ const AnimatedEllipsis = () => {
 export default function DiscoveryScreen() {
   const [isSearching, setIsSearching] = useState(false);
   const [connectingTo, setConnectingTo] = useState<string | null>(null);
+  const [activeRobot, setActiveRobot] = useState<string>('Sera Unit X-1');
+  const [isSetupBtnPressed, setIsSetupBtnPressed] = useState(false);
+  const [isExtendVisionEnabled, setIsExtendVisionEnabled] = useState(false);
   const router = useRouter();
 
   const handleSetupPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setConnectingTo(null);
     setIsSearching(true);
     setTimeout(() => {
       router.push('/wifi-discover');
     }, 10000);
   };
 
+  const handleSelectRobot = (name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setActiveRobot(name);
+  };
+
   const handleConnectPress = (name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setConnectingTo(name);
     // In a real app, you'd initiate connection logic here.
-    // For this demo, we'll just show the connecting state.
   };
 
   return (
@@ -209,15 +220,18 @@ export default function DiscoveryScreen() {
       <RobotCard
         name="Sera Unit X-1"
         signal="Strong Signal"
-        active
+        active={activeRobot === 'Sera Unit X-1'}
         disabled={connectingTo !== null}
+        onSelect={() => handleSelectRobot('Sera Unit X-1')}
         onConnect={() => handleConnectPress('Sera Unit X-1')}
       />
 
       <RobotCard
         name="Sera Unit A-4"
         signal="Weak Signal"
+        active={activeRobot === 'Sera Unit A-4'}
         disabled={connectingTo !== null}
+        onSelect={() => handleSelectRobot('Sera Unit A-4')}
         onConnect={() => handleConnectPress('Sera Unit A-4')}
       />
 
@@ -235,12 +249,30 @@ export default function DiscoveryScreen() {
             true: theme.colors.toggleOn,
           }}
           thumbColor="#fff"
+          value={isExtendVisionEnabled}
+          onValueChange={setIsExtendVisionEnabled}
         />
       </View>
 
       {/* Footer CTA */}
-      <TouchableOpacity style={styles.setupBtn} onPress={handleSetupPress}>
-        <Text style={styles.setupText}>＋ Setup New Robot</Text>
+      <TouchableOpacity
+        style={[
+          styles.setupBtn,
+          isSetupBtnPressed && { backgroundColor: theme.colors.accent },
+        ]}
+        onPress={handleSetupPress}
+        onPressIn={() => setIsSetupBtnPressed(true)}
+        onPressOut={() => setIsSetupBtnPressed(false)}
+        activeOpacity={1}
+      >
+        <Text
+          style={[
+            styles.setupText,
+            isSetupBtnPressed && { color: '#000' },
+          ]}
+        >
+          ＋ Setup New Robot
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -252,38 +284,52 @@ function RobotCard({
   name,
   signal,
   active,
+  onSelect,
   onConnect,
   disabled,
 }: {
   name: string;
   signal: string;
   active?: boolean;
+  onSelect: () => void;
   onConnect: () => void;
   disabled?: boolean;
 }) {
+  const [isPressed, setIsPressed] = useState(false);
+
+  const isHighlighted = active || isPressed;
+
   return (
     <View
       style={[
         styles.robotCard,
-        active && { borderColor: theme.colors.accent },
+        isHighlighted && { borderColor: theme.colors.accent },
       ]}
     >
-      <View style={styles.robotAvatar} />
-
-      <View style={{ flex: 1 }}>
-        <Text style={styles.robotName}>{name}</Text>
-        <Text style={styles.robotSignal}>{signal}</Text>
-      </View>
+      <TouchableOpacity
+        style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+        onPress={onSelect}
+        onPressIn={() => setIsPressed(true)}
+        onPressOut={() => setIsPressed(false)}
+        disabled={disabled}
+        activeOpacity={1}
+      >
+        <View style={styles.robotAvatar} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.robotName}>{name}</Text>
+          <Text style={styles.robotSignal}>{signal}</Text>
+        </View>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={[
           styles.connectBtn,
-          active && { backgroundColor: theme.colors.accent },
+          isHighlighted && { backgroundColor: theme.colors.accent },
         ]}
         onPress={onConnect}
-        disabled={disabled}
+        disabled={!active || disabled}
       >
-        <Text style={[styles.connectText, active && { color: '#000' }]}>
+        <Text style={[styles.connectText, isHighlighted && { color: '#000' }]}>
           Connect
         </Text>
       </TouchableOpacity>
