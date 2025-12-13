@@ -175,7 +175,7 @@ export default function DiscoveryScreen() {
     >
       {/* Hero */}
       <View style={styles.hero}>
-        <RobotFace isSearching={isSearching} />
+        <RobotFace isSearching={isSearching || connectingTo !== null} />
         <Text style={styles.title}>Hello! Let's find your Sera.</Text>
         <Text style={styles.subtitle}>
           Make sure your robot is turned on and nearby.
@@ -183,10 +183,23 @@ export default function DiscoveryScreen() {
 
         <View style={styles.scanPill}>
           <View style={styles.dot} />
-          <Text style={styles.scanText}>
-            {isSearching ? 'SEARCHING' : 'SCANNING FOR DEVICES'}
-            <AnimatedEllipsis />
-          </Text>
+          <View>
+            <Text style={[styles.scanText, { opacity: 0 }]}>
+              {connectingTo
+                ? `Connecting to ${connectingTo}...`
+                : isSearching
+                ? 'SEARCHING...'
+                : 'SCANNING FOR DEVICES...'}
+            </Text>
+            <Text style={[styles.scanText, { position: 'absolute' }]}>
+              {connectingTo
+                ? `Connecting to ${connectingTo}`
+                : isSearching
+                ? 'SEARCHING'
+                : 'SCANNING FOR DEVICES'}
+              <AnimatedEllipsis />
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -197,14 +210,14 @@ export default function DiscoveryScreen() {
         name="Sera Unit X-1"
         signal="Strong Signal"
         active
-        isConnecting={connectingTo === 'Sera Unit X-1'}
+        disabled={connectingTo !== null}
         onConnect={() => handleConnectPress('Sera Unit X-1')}
       />
 
       <RobotCard
         name="Sera Unit A-4"
         signal="Weak Signal"
-        isConnecting={connectingTo === 'Sera Unit A-4'}
+        disabled={connectingTo !== null}
         onConnect={() => handleConnectPress('Sera Unit A-4')}
       />
 
@@ -240,13 +253,13 @@ function RobotCard({
   signal,
   active,
   onConnect,
-  isConnecting,
+  disabled,
 }: {
   name: string;
   signal: string;
   active?: boolean;
   onConnect: () => void;
-  isConnecting?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <View
@@ -268,20 +281,11 @@ function RobotCard({
           active && { backgroundColor: theme.colors.accent },
         ]}
         onPress={onConnect}
-        disabled={isConnecting}
+        disabled={disabled}
       >
-        <View style={styles.connectBtnTextView}>
-          {isConnecting ? (
-            <Text style={[styles.connectText, active && { color: '#000' }]}>
-              CONNECTING
-              <AnimatedEllipsis />
-            </Text>
-          ) : (
-            <Text style={[styles.connectText, active && { color: '#000' }]}>
-              Connect
-            </Text>
-          )}
-        </View>
+        <Text style={[styles.connectText, active && { color: '#000' }]}>
+          Connect
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -383,8 +387,6 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontSize: 12,
     letterSpacing: 1,
-    minWidth: 160,
-    textAlign: 'center',
   },
 
   section: {
@@ -429,11 +431,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
     backgroundColor: theme.colors.surfaceAlt,
-  },
-
-  connectBtnTextView: {
-    minWidth: 80,
-    alignItems: 'center',
   },
 
   connectText: {
