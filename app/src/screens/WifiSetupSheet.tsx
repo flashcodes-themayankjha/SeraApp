@@ -6,9 +6,12 @@ import {
   Animated,
   Dimensions,
   ScrollView,
+  Easing,
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
+
+const touchIcon = require('../../../assets/touch.png');
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -16,21 +19,9 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
    STEP DEFINITIONS
 ================================================= */
 
-type WifiStep =
-  | 'scan'
-  | 'connect-robot'
-  | 'configure-wifi'
-  | 'success';
+type WifiStep = 'scan' | 'connect-robot' | 'configure-wifi' | 'success';
 
-const STEP_ORDER: WifiStep[] = [
-  'scan',
-  'connect-robot',
-  'configure-wifi',
-  'success',
-];
-
-const STEP_INDEX = (step: WifiStep) =>
-  STEP_ORDER.indexOf(step) + 1;
+const STEPS: WifiStep[] = ['scan', 'connect-robot', 'configure-wifi', 'success'];
 
 /* =================================================
    MAIN SHEET
@@ -56,57 +47,43 @@ export default function WifiSetupSheet({
 
   if (!visible) return null;
 
+  const stepIndex = STEPS.indexOf(step) + 1;
+
   const goNext = () => {
-    const idx = STEP_ORDER.indexOf(step);
-    if (idx < STEP_ORDER.length - 1) {
-      setStep(STEP_ORDER[idx + 1]);
-    }
+    const i = STEPS.indexOf(step);
+    if (i < STEPS.length - 1) setStep(STEPS[i + 1]);
   };
 
   const goBack = () => {
-    const idx = STEP_ORDER.indexOf(step);
-    if (idx > 0) {
-      setStep(STEP_ORDER[idx - 1]);
-    }
+    const i = STEPS.indexOf(step);
+    if (i > 0) setStep(STEPS[i - 1]);
   };
 
   return (
     <Animated.View
-      style={[
-        styles.sheet,
-        { transform: [{ translateY }] },
-      ]}
+      style={[styles.sheet, { transform: [{ translateY }] }]}
     >
-      {/* HEADER */}
       <Header
-        step={STEP_INDEX(step)}
+        step={stepIndex}
         onBack={step !== 'scan' ? goBack : undefined}
         onClose={onClose}
       />
 
-      {/* CONTENT */}
       <ScrollView
-        style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
       >
         {step === 'scan' && <StepScan onNext={goNext} />}
-        {step === 'connect-robot' && (
-          <StepConnectRobot onNext={goNext} />
-        )}
-        {step === 'configure-wifi' && (
-          <StepConfigureWifi onNext={goNext} />
-        )}
-        {step === 'success' && (
-          <StepSuccess onFinish={onClose} />
-        )}
+        {step === 'connect-robot' && <StepConnectRobot onNext={goNext} />}
+        {step === 'configure-wifi' && <StepConfigureWifi onNext={goNext} />}
+        {step === 'success' && <StepSuccess onFinish={onClose} />}
       </ScrollView>
     </Animated.View>
   );
 }
 
 /* =================================================
-   HEADER + STEP BAR
+   HEADER
 ================================================= */
 
 function Header({
@@ -121,19 +98,17 @@ function Header({
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} disabled={!onBack}>
-        <Text style={[styles.headerIcon, !onBack && { opacity: 0 }]}>
-          ←
-        </Text>
+        <Text style={[styles.headerLeft, !onBack && { opacity: 0 }]}>←</Text>
       </TouchableOpacity>
 
       <Text style={styles.headerTitle}>Wi-Fi Setup</Text>
 
       <TouchableOpacity onPress={onClose}>
-        <Text style={styles.headerIcon}>✕</Text>
+        <Text style={styles.headerRight}>✕</Text>
       </TouchableOpacity>
 
       <View style={styles.progressRow}>
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4].map(i => (
           <View
             key={i}
             style={[
@@ -148,7 +123,7 @@ function Header({
 }
 
 /* =================================================
-   STEP 1 — SCAN / SETUP MODE
+   STEP 1 — SCAN
 ================================================= */
 
 function StepScan({ onNext }: { onNext: () => void }) {
@@ -156,12 +131,11 @@ function StepScan({ onNext }: { onNext: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 1 OF 4</Text>
 
-      <Illustration label="Press Button" />
+      <Illustration animated />
 
       <Text style={styles.title}>Press Setup Button</Text>
       <Text style={styles.subtitle}>
-        Hold the setup button on your robot for 3 seconds until
-        the LED blinks{' '}
+        Hold the setup button for 3 seconds until the LED blinks{' '}
         <Text style={{ color: theme.colors.accent }}>blue</Text>.
       </Text>
 
@@ -176,7 +150,7 @@ function StepScan({ onNext }: { onNext: () => void }) {
 }
 
 /* =================================================
-   STEP 2 — CONNECT TO ROBOT
+   STEP 2 — CONNECT ROBOT
 ================================================= */
 
 function StepConnectRobot({ onNext }: { onNext: () => void }) {
@@ -184,14 +158,12 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 2 OF 4</Text>
 
-      <Illustration label="Wi-Fi" />
+      <Illustration />
 
       <Text style={styles.title}>Connect to Robot</Text>
       <Text style={styles.subtitle}>
-        Open Wi-Fi settings and connect to{' '}
-        <Text style={{ color: theme.colors.accent }}>
-          “Sera-Robot-XX”
-        </Text>
+        Connect to Wi-Fi network{' '}
+        <Text style={{ color: theme.colors.accent }}>“Sera-Robot-XX”</Text>
       </Text>
 
       <PrimaryButton label="Open Wi-Fi Settings" />
@@ -232,11 +204,11 @@ function StepSuccess({ onFinish }: { onFinish: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 4 OF 4</Text>
 
-      <Illustration label="✓" />
+      <Illustration />
 
       <Text style={styles.title}>Connection Successful</Text>
       <Text style={styles.subtitle}>
-        Your Sera is now connected and ready for calibration.
+        Your Sera is now connected and ready.
       </Text>
 
       <PrimaryButton label="Finish Setup" onPress={onFinish} />
@@ -246,24 +218,102 @@ function StepSuccess({ onFinish }: { onFinish: () => void }) {
 }
 
 /* =================================================
-   SHARED UI COMPONENTS
+   SHARED COMPONENTS
 ================================================= */
 
-function Illustration({ label }: { label: string }) {
+function Illustration({ animated }: { animated?: boolean }) {
+  const bounce = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!animated) return;
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounce, {
+          toValue: -6,
+          duration: 300,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounce, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.delay(600),
+      ])
+    ).start();
+  }, [animated]);
+
   return (
     <View style={styles.illustration}>
-      <Text style={{ color: theme.colors.accent }}>{label}</Text>
+      <View style={styles.iconWrapper}>
+        {animated && (
+          <>
+            <PulsingHalo delay={0} />
+            <PulsingHalo delay={700} />
+            <PulsingHalo delay={1400} />
+          </>
+        )}
+
+        <Animated.Image
+          source={touchIcon}
+          style={[
+            styles.touchIcon,
+            animated && { transform: [{ translateY: bounce }] },
+          ]}
+        />
+      </View>
     </View>
   );
 }
 
-function StatusCard({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle: string;
-}) {
+function PulsingHalo({ delay }: { delay: number }) {
+  const ring = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(ring, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ring, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        styles.haloRing,
+        {
+          opacity: ring.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.6, 0],
+          }),
+          transform: [
+            {
+              scale: ring.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 1.6],
+              }),
+            },
+          ],
+        },
+      ]}
+    />
+  );
+}
+
+function StatusCard({ title, subtitle }: any) {
   return (
     <View style={styles.statusCard}>
       <Text style={styles.statusTitle}>{title}</Text>
@@ -272,13 +322,7 @@ function StatusCard({
   );
 }
 
-function NetworkItem({
-  name,
-  signal,
-}: {
-  name: string;
-  signal: string;
-}) {
+function NetworkItem({ name, signal }: any) {
   return (
     <View style={styles.networkItem}>
       <Text style={styles.networkName}>{name}</Text>
@@ -287,13 +331,7 @@ function NetworkItem({
   );
 }
 
-function PrimaryButton({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress?: () => void;
-}) {
+function PrimaryButton({ label, onPress }: any) {
   return (
     <TouchableOpacity style={styles.primaryBtn} onPress={onPress}>
       <Text style={styles.primaryText}>{label}</Text>
@@ -301,13 +339,7 @@ function PrimaryButton({
   );
 }
 
-function GhostButton({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress?: () => void;
-}) {
+function GhostButton({ label, onPress }: any) {
   return (
     <TouchableOpacity onPress={onPress}>
       <Text style={styles.ghost}>{label}</Text>
@@ -316,20 +348,19 @@ function GhostButton({
 }
 
 /* =================================================
-   STYLES (MATCH SERA UI)
+   STYLES
 ================================================= */
 
 const styles = StyleSheet.create({
   sheet: {
     position: 'absolute',
     bottom: 0,
-    height: '95%',
+    height: '92%',
     width: '100%',
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: theme.spacing.xl,
-    flexDirection: 'column',
   },
 
   header: {
@@ -338,13 +369,22 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     textAlign: 'center',
-    color: theme.colors.textPrimary,
     fontSize: 18,
     fontWeight: '600',
+    color: theme.colors.textPrimary,
   },
 
-  headerIcon: {
+  headerLeft: {
     position: 'absolute',
+    left: 0,
+    top: 0,
+    fontSize: 22,
+    color: theme.colors.textPrimary,
+  },
+
+  headerRight: {
+    position: 'absolute',
+    right: 0,
     top: 0,
     fontSize: 22,
     color: theme.colors.textPrimary,
@@ -358,8 +398,8 @@ const styles = StyleSheet.create({
   },
 
   progressDot: {
-    width: 22,
-    height: 4,
+    width: 18,
+    height: 3,
     borderRadius: 2,
     backgroundColor: theme.colors.border,
   },
@@ -370,17 +410,13 @@ const styles = StyleSheet.create({
 
   center: {
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  content: {
-    flex: 1,
+    paddingTop: 24,
   },
 
   illustration: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignItems: 'center',
@@ -388,18 +424,40 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 
+  iconWrapper: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  touchIcon: {
+    width: 48,
+    height: 48,
+    tintColor: theme.colors.accent,
+  },
+
+  haloRing: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: theme.colors.accent,
+  },
+
   step: {
     color: theme.colors.textMuted,
-    letterSpacing: 1,
     marginBottom: 12,
+    letterSpacing: 1,
   },
 
   title: {
-    color: theme.colors.textPrimary,
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 12,
+    color: theme.colors.textPrimary,
     textAlign: 'center',
+    marginBottom: 12,
   },
 
   subtitle: {
@@ -432,7 +490,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.pill,
     width: '100%',
     alignItems: 'center',
-    marginTop: 12,
   },
 
   primaryText: {
@@ -442,8 +499,8 @@ const styles = StyleSheet.create({
   },
 
   ghost: {
-    color: theme.colors.accent,
     marginTop: 20,
+    color: theme.colors.accent,
     fontWeight: '600',
     textAlign: 'center',
   },
