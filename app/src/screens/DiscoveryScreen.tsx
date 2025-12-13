@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
+import WifiSetupSheet from '../components/WifiSetupSheet';
 
 const HaloRing = ({
   delay,
@@ -63,7 +64,7 @@ const HaloRing = ({
   return <Animated.View style={[styles.haloRing, ringStyle]} />;
 };
 
-const RobotFace = ({ isSearching }: { isSearching: boolean }) => {
+const RobotFace = ({ isConnecting }: { isConnecting: boolean }) => {
   const blink = useRef(new Animated.Value(1)).current;
   const borderColorAnim = useRef(new Animated.Value(0)).current;
 
@@ -112,7 +113,7 @@ const RobotFace = ({ isSearching }: { isSearching: boolean }) => {
 
   return (
     <View style={styles.faceContainer}>
-      {isSearching ? (
+      {isConnecting ? (
         <>
           <HaloRing delay={0} duration={2000} scale={1.8} />
           <HaloRing delay={500} duration={2000} scale={1.8} />
@@ -151,20 +152,15 @@ const AnimatedEllipsis = () => {
 };
 
 export default function DiscoveryScreen() {
-  const [isSearching, setIsSearching] = useState(false);
   const [connectingTo, setConnectingTo] = useState<string | null>(null);
   const [activeRobot, setActiveRobot] = useState<string>('Sera Unit X-1');
   const [isSetupBtnPressed, setIsSetupBtnPressed] = useState(false);
   const [isExtendVisionEnabled, setIsExtendVisionEnabled] = useState(false);
-  const router = useRouter();
+  const [isWifiSheetOpen, setIsWifiSheetOpen] = useState(false);
 
   const handleSetupPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setConnectingTo(null);
-    setIsSearching(true);
-    setTimeout(() => {
-      router.push('/wifi-discover');
-    }, 10000);
+    setIsWifiSheetOpen(true);
   };
 
   const handleSelectRobot = (name: string) => {
@@ -179,102 +175,104 @@ export default function DiscoveryScreen() {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hero */}
-      <View style={styles.hero}>
-        <RobotFace isSearching={isSearching || connectingTo !== null} />
-        <Text style={styles.title}>Hello! Let's find your Sera.</Text>
-        <Text style={styles.subtitle}>
-          Make sure your robot is turned on and nearby.
-        </Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero */}
+        <View style={styles.hero}>
+          <RobotFace isConnecting={connectingTo !== null} />
+          <Text style={styles.title}>Hello! Let's find your Sera.</Text>
+          <Text style={styles.subtitle}>
+            Make sure your robot is turned on and nearby.
+          </Text>
 
-        <View style={styles.scanPill}>
-          <View style={styles.dot} />
-          <View>
-            <Text style={[styles.scanText, { opacity: 0 }]}>
-              {connectingTo
-                ? `Connecting to ${connectingTo}...`
-                : isSearching
-                ? 'SEARCHING...'
-                : 'SCANNING FOR DEVICES...'}
-            </Text>
-            <Text style={[styles.scanText, { position: 'absolute' }]}>
-              {connectingTo
-                ? `Connecting to ${connectingTo}`
-                : isSearching
-                ? 'SEARCHING'
-                : 'SCANNING FOR DEVICES'}
-              <AnimatedEllipsis />
-            </Text>
+          <View style={styles.scanPill}>
+            <View style={styles.dot} />
+            <View>
+              <Text style={[styles.scanText, { opacity: 0 }]}>
+                {connectingTo
+                  ? `Connecting to ${connectingTo}...`
+                  : 'SCANNING FOR DEVICES...'}
+              </Text>
+              <Text style={[styles.scanText, { position: 'absolute' }]}>
+                {connectingTo
+                  ? `Connecting to ${connectingTo}`
+                  : 'SCANNING FOR DEVICES'}
+                <AnimatedEllipsis />
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Available Robots */}
-      <Text style={styles.section}>Available Robots</Text>
+        {/* Available Robots */}
+        <Text style={styles.section}>Available Robots</Text>
 
-      <RobotCard
-        name="Sera Unit X-1"
-        signal="Strong Signal"
-        active={activeRobot === 'Sera Unit X-1'}
-        disabled={connectingTo !== null}
-        onSelect={() => handleSelectRobot('Sera Unit X-1')}
-        onConnect={() => handleConnectPress('Sera Unit X-1')}
-      />
-
-      <RobotCard
-        name="Sera Unit A-4"
-        signal="Weak Signal"
-        active={activeRobot === 'Sera Unit A-4'}
-        disabled={connectingTo !== null}
-        onSelect={() => handleSelectRobot('Sera Unit A-4')}
-        onConnect={() => handleConnectPress('Sera Unit A-4')}
-      />
-
-      {/* Extend Vision */}
-      <View style={styles.extendVision}>
-        <View>
-          <Text style={styles.extendTitle}>Extend Vision</Text>
-          <Text style={styles.extendSubtitle}>
-            Use phone camera as robot camera
-          </Text>
-        </View>
-        <Switch
-          trackColor={{
-            false: theme.colors.toggleOff,
-            true: theme.colors.toggleOn,
-          }}
-          thumbColor="#fff"
-          value={isExtendVisionEnabled}
-          onValueChange={setIsExtendVisionEnabled}
+        <RobotCard
+          name="Sera Unit X-1"
+          signal="Strong Signal"
+          active={activeRobot === 'Sera Unit X-1'}
+          disabled={connectingTo !== null}
+          onSelect={() => handleSelectRobot('Sera Unit X-1')}
+          onConnect={() => handleConnectPress('Sera Unit X-1')}
         />
-      </View>
 
-      {/* Footer CTA */}
-      <TouchableOpacity
-        style={[
-          styles.setupBtn,
-          isSetupBtnPressed && { backgroundColor: theme.colors.accent },
-        ]}
-        onPress={handleSetupPress}
-        onPressIn={() => setIsSetupBtnPressed(true)}
-        onPressOut={() => setIsSetupBtnPressed(false)}
-        activeOpacity={1}
-      >
-        <Text
+        <RobotCard
+          name="Sera Unit A-4"
+          signal="Weak Signal"
+          active={activeRobot === 'Sera Unit A-4'}
+          disabled={connectingTo !== null}
+          onSelect={() => handleSelectRobot('Sera Unit A-4')}
+          onConnect={() => handleConnectPress('Sera Unit A-4')}
+        />
+
+        {/* Extend Vision */}
+        <View style={styles.extendVision}>
+          <View>
+            <Text style={styles.extendTitle}>Extend Vision</Text>
+            <Text style={styles.extendSubtitle}>
+              Use phone camera as robot camera
+            </Text>
+          </View>
+          <Switch
+            trackColor={{
+              false: theme.colors.toggleOff,
+              true: theme.colors.toggleOn,
+            }}
+            thumbColor="#fff"
+            value={isExtendVisionEnabled}
+            onValueChange={setIsExtendVisionEnabled}
+          />
+        </View>
+
+        {/* Footer CTA */}
+        <TouchableOpacity
           style={[
-            styles.setupText,
-            isSetupBtnPressed && { color: '#000' },
+            styles.setupBtn,
+            isSetupBtnPressed && { backgroundColor: theme.colors.accent },
           ]}
+          onPress={handleSetupPress}
+          onPressIn={() => setIsSetupBtnPressed(true)}
+          onPressOut={() => setIsSetupBtnPressed(false)}
+          activeOpacity={1}
         >
-          ＋ Setup New Robot
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text
+            style={[
+              styles.setupText,
+              isSetupBtnPressed && { color: '#000' },
+            ]}
+          >
+            ＋ Setup New Robot
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+      <WifiSetupSheet
+        isOpen={isWifiSheetOpen}
+        onClose={() => setIsWifiSheetOpen(false)}
+      />
+    </View>
   );
 }
 
