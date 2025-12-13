@@ -1,5 +1,5 @@
-import { Redirect } from 'expo-router';
+import DiscoveryScreen from '@/app/src/screens/DiscoveryScreen';
 
 export default function Index() {
-  return <Redirect href="/onboarding" />;
+  return <DiscoveryScreen />;
 }

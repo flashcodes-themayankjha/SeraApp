@@ -9,215 +9,244 @@ import {
   Easing,
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { theme } from '../theme';
-import { useNavigation } from '@react-navigation/native';
 
-export default function DiscoveryScreen() {
-  const navigation = useNavigation<any>();
-
-  // Radar rings
-  const ring1 = useRef(new Animated.Value(0)).current;
-  const ring2 = useRef(new Animated.Value(0)).current;
-  const ring3 = useRef(new Animated.Value(0)).current;
-
-  // Eye blink
-  const blink = useRef(new Animated.Value(1)).current;
-
-  const [scanning] = useState(true);
-  const [showCancel, setShowCancel] = useState(false);
+const HaloRing = ({
+  delay,
+  scale = 1.5,
+  duration = 3000,
+}: {
+  delay: number;
+  scale?: number;
+  duration?: number;
+}) => {
+  const ring = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const ringAnim = (anim: Animated.Value, delay: number) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(anim, {
-            toValue: 1,
-            duration: 2600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-
-    Animated.parallel([
-      ringAnim(ring1, 0),
-      ringAnim(ring2, 850),
-      ringAnim(ring3, 1700),
-    ]).start();
-
-    // Subtle robot blink
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
-        Animated.delay(3200),
-        Animated.timing(blink, {
-          toValue: 0.15,
-          duration: 120,
+        Animated.delay(delay),
+        Animated.timing(ring, {
+          toValue: 1,
+          duration,
+          easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
-        Animated.timing(blink, {
-          toValue: 1,
-          duration: 160,
+        Animated.timing(ring, {
+          toValue: 0,
+          duration: 0,
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, []);
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [delay, ring, duration]);
+
+  const ringStyle = {
+    opacity: ring.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.7, 0],
+    }),
+    transform: [
+      {
+        scale: ring.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, scale],
+        }),
+      },
+    ],
+  };
+
+  return <Animated.View style={[styles.haloRing, ringStyle]} />;
+};
+
+const RobotFace = ({ isSearching }: { isSearching: boolean }) => {
+  const blink = useRef(new Animated.Value(1)).current;
+  const borderColorAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const blinkAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.delay(3000),
+        Animated.timing(blink, {
+          toValue: 0.05,
+          duration: 250,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.delay(100),
+        Animated.timing(blink, {
+          toValue: 1,
+          duration: 350,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.delay(5000),
+      ])
+    );
+    blinkAnimation.start();
+
+    const faceAnimation = Animated.timing(borderColorAnim, {
+      toValue: 1,
+      duration: 1000,
+      delay: 2000, // Start after 2 seconds
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false, // borderColor animation not supported by native driver
+    });
+
+    faceAnimation.start();
+
+    return () => {
+      blinkAnimation.stop();
+      faceAnimation.stop();
+    };
+  }, [blink, borderColorAnim]);
+
+  const borderColor = borderColorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [theme.colors.border, theme.colors.accent],
+  });
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => setShowCancel(true)}>
-            <Text style={styles.back}>←</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Hero */}
-        <View style={styles.hero}>
-          {/* Radar Rings */}
-          {[ring1, ring2, ring3].map((ring, i) => (
-            <Animated.View
-              key={i}
-              style={[
-                styles.ring,
-                {
-                  opacity: ring.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.35, 0],
-                  }),
-                  transform: [
-                    {
-                      scale: ring.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 1.8],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          ))}
-
-          {/* Face */}
-          <View style={styles.faceOuter}>
-            <View style={styles.faceInner}>
-              <Animated.View
-                style={[
-                  styles.eye,
-                  { transform: [{ scaleY: blink }] },
-                ]}
-              />
-              <Animated.View
-                style={[
-                  styles.eye,
-                  { transform: [{ scaleY: blink }] },
-                ]}
-              />
-            </View>
-          </View>
-
-          <Text style={styles.title}>Hello! Let's find your Sera.</Text>
-          <Text style={styles.subtitle}>
-            Make sure your robot is turned on and nearby.
-          </Text>
-
-          <View style={styles.scanPill}>
-            <View style={styles.dot} />
-            <Text style={styles.scanText}>
-              {scanning ? 'SCANNING FOR DEVICES…' : 'SCAN COMPLETE'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Available Robots */}
-        <Text style={styles.section}>Available Robots</Text>
-
-        <RobotCard
-          name="Sera Unit X-1"
-          signal="Strong Signal"
-          active
-          onConnect={() => navigation.navigate('Dashboard')}
-        />
-
-        <RobotCard
-          name="Sera Unit A-4"
-          signal="Weak Signal"
-          onConnect={() => navigation.navigate('Dashboard')}
-        />
-
-        {/* Extend Vision */}
-        <View style={styles.extendVision}>
-          <View>
-            <Text style={styles.extendTitle}>Extend Vision</Text>
-            <Text style={styles.extendSubtitle}>
-              Use phone camera as robot camera
-            </Text>
-          </View>
-          <Switch
-            trackColor={{
-              false: theme.colors.toggleOff,
-              true: theme.colors.toggleOn,
-            }}
-            thumbColor="#fff"
+    <View style={styles.faceContainer}>
+      {isSearching ? (
+        <>
+          <HaloRing delay={0} duration={2000} scale={1.8} />
+          <HaloRing delay={500} duration={2000} scale={1.8} />
+          <HaloRing delay={1000} duration={2000} scale={1.8} />
+          <HaloRing delay={1500} duration={2000} scale={1.8} />
+        </>
+      ) : (
+        <>
+          <HaloRing delay={0} />
+          <HaloRing delay={1500} />
+        </>
+      )}
+      <Animated.View style={[styles.faceRing, { borderColor }]}>
+        <View style={styles.eyes}>
+          <Animated.View
+            style={[styles.eye, { transform: [{ scaleY: blink }] }]}
+          />
+          <Animated.View
+            style={[styles.eye, { transform: [{ scaleY: blink }] }]}
           />
         </View>
-
-        {/* Setup New */}
-        <TouchableOpacity style={styles.setupBtn}>
-          <Text style={styles.setupText}>＋ Setup New Robot</Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* Cancel Setup Modal */}
-      {showCancel && (
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Cancel Setup?</Text>
-            <Text style={styles.modalText}>
-              Your robot is not yet connected. Are you sure you want to stop the
-              setup process?
-            </Text>
-
-            <TouchableOpacity
-              style={styles.modalPrimary}
-              onPress={() => setShowCancel(false)}
-            >
-              <Text style={styles.modalPrimaryText}>Continue Setup</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => setShowCancel(false)}>
-              <Text style={styles.modalDanger}>Exit Setup</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      </Animated.View>
     </View>
+  );
+};
+
+const AnimatedEllipsis = () => {
+  const [ellipsis, setEllipsis] = useState('');
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setEllipsis(e => (e.length < 3 ? e + '.' : ''));
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+  return <Text>{ellipsis}</Text>;
+};
+
+export default function DiscoveryScreen() {
+  const [isSearching, setIsSearching] = useState(false);
+  const [connectingTo, setConnectingTo] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleSetupPress = () => {
+    setIsSearching(true);
+    setTimeout(() => {
+      router.push('/wifi-discover');
+    }, 10000);
+  };
+
+  const handleConnectPress = (name: string) => {
+    setConnectingTo(name);
+    // In a real app, you'd initiate connection logic here.
+    // For this demo, we'll just show the connecting state.
+  };
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Hero */}
+      <View style={styles.hero}>
+        <RobotFace isSearching={isSearching} />
+        <Text style={styles.title}>Hello! Let's find your Sera.</Text>
+        <Text style={styles.subtitle}>
+          Make sure your robot is turned on and nearby.
+        </Text>
+
+        <View style={styles.scanPill}>
+          <View style={styles.dot} />
+          <Text style={styles.scanText}>
+            {isSearching ? 'SEARCHING' : 'SCANNING FOR DEVICES'}
+            <AnimatedEllipsis />
+          </Text>
+        </View>
+      </View>
+
+      {/* Available Robots */}
+      <Text style={styles.section}>Available Robots</Text>
+
+      <RobotCard
+        name="Sera Unit X-1"
+        signal="Strong Signal"
+        active
+        isConnecting={connectingTo === 'Sera Unit X-1'}
+        onConnect={() => handleConnectPress('Sera Unit X-1')}
+      />
+
+      <RobotCard
+        name="Sera Unit A-4"
+        signal="Weak Signal"
+        isConnecting={connectingTo === 'Sera Unit A-4'}
+        onConnect={() => handleConnectPress('Sera Unit A-4')}
+      />
+
+      {/* Extend Vision */}
+      <View style={styles.extendVision}>
+        <View>
+          <Text style={styles.extendTitle}>Extend Vision</Text>
+          <Text style={styles.extendSubtitle}>
+            Use phone camera as robot camera
+          </Text>
+        </View>
+        <Switch
+          trackColor={{
+            false: theme.colors.toggleOff,
+            true: theme.colors.toggleOn,
+          }}
+          thumbColor="#fff"
+        />
+      </View>
+
+      {/* Footer CTA */}
+      <TouchableOpacity style={styles.setupBtn} onPress={handleSetupPress}>
+        <Text style={styles.setupText}>＋ Setup New Robot</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
-/* ---------------- Robot Card ---------------- */
+/* ---------------- Components ---------------- */
 
 function RobotCard({
   name,
   signal,
   active,
   onConnect,
+  isConnecting,
 }: {
   name: string;
   signal: string;
   active?: boolean;
   onConnect: () => void;
+  isConnecting?: boolean;
 }) {
   return (
     <View
@@ -239,15 +268,20 @@ function RobotCard({
           active && { backgroundColor: theme.colors.accent },
         ]}
         onPress={onConnect}
+        disabled={isConnecting}
       >
-        <Text
-          style={[
-            styles.connectText,
-            active && { color: '#000' },
-          ]}
-        >
-          Connect
-        </Text>
+        <View style={styles.connectBtnTextView}>
+          {isConnecting ? (
+            <Text style={[styles.connectText, active && { color: '#000' }]}>
+              CONNECTING
+              <AnimatedEllipsis />
+            </Text>
+          ) : (
+            <Text style={[styles.connectText, active && { color: '#000' }]}>
+              Connect
+            </Text>
+          )}
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -262,30 +296,31 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   },
 
-  header: {
-    marginBottom: theme.spacing.md,
-  },
-
-  back: {
-    color: theme.colors.textPrimary,
-    fontSize: 22,
-  },
-
   hero: {
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
+    marginTop: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
   },
 
-  ring: {
+  faceContainer: {
+    width: 260,
+    height: 260,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+
+  haloRing: {
     position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     borderWidth: 1,
-    borderColor: 'rgba(214,190,138,0.35)',
+    borderColor: theme.colors.accent,
   },
 
-  faceOuter: {
+  faceRing: {
     width: 160,
     height: 160,
     borderRadius: 80,
@@ -293,29 +328,31 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.lg,
   },
 
-  faceInner: {
+  eyes: {
     width: 90,
-    height: 40,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
 
   eye: {
-    width: 18,
-    height: 4,
-    borderRadius: 2,
+    width: 36,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: theme.colors.accent,
     ...theme.shadows.glow,
   },
+
 
   title: {
     color: theme.colors.textPrimary,
     fontSize: 26,
     fontWeight: '700',
     marginBottom: theme.spacing.sm,
+    paddingTop: theme.spacing.lg,
   },
 
   subtitle: {
@@ -346,6 +383,8 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontSize: 12,
     letterSpacing: 1,
+    minWidth: 160,
+    textAlign: 'center',
   },
 
   section: {
@@ -392,6 +431,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceAlt,
   },
 
+  connectBtnTextView: {
+    minWidth: 80,
+    alignItems: 'center',
+  },
+
   connectText: {
     color: theme.colors.accent,
     fontWeight: '600',
@@ -429,55 +473,6 @@ const styles = StyleSheet.create({
 
   setupText: {
     color: theme.colors.textPrimary,
-    fontWeight: '600',
-  },
-
-  modalBackdrop: {
-    position: 'absolute',
-    inset: 0,
-    backgroundColor: theme.colors.backdrop,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  modal: {
-    width: '85%',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.xl,
-    alignItems: 'center',
-    ...theme.shadows.card,
-  },
-
-  modalTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: theme.spacing.sm,
-  },
-
-  modalText: {
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-
-  modalPrimary: {
-    width: '100%',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.pill,
-    paddingVertical: theme.spacing.md,
-    alignItems: 'center',
-    marginBottom: theme.spacing.md,
-  },
-
-  modalPrimaryText: {
-    color: '#000',
-    fontWeight: '700',
-  },
-
-  modalDanger: {
-    color: theme.colors.error,
     fontWeight: '600',
   },
 });
