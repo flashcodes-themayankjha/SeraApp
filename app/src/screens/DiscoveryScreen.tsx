@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
-import WifiSetupSheet from '../components/WifiSetupSheet';
+import WifiSetupSheet from '../screens/WifiSetupSheet';
 
 const HaloRing = ({
   delay,
@@ -269,7 +269,7 @@ export default function DiscoveryScreen() {
         </TouchableOpacity>
       </ScrollView>
       <WifiSetupSheet
-        isOpen={isWifiSheetOpen}
+        visible={isWifiSheetOpen}
         onClose={() => setIsWifiSheetOpen(false)}
       />
     </View>
