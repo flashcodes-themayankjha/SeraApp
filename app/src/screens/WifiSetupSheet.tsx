@@ -16,6 +16,7 @@ import LottieView from 'lottie-react-native';
 
 const touchIcon = require('../../../assets/touch.png');
 const successAnimation = require('../assets/lottie/success.json');
+const pressAnimation = require('../assets/lottie/press.json');
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -135,7 +136,7 @@ function StepScan({ onNext }: { onNext: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 1 OF 4</Text>
 
-      <Illustration animated />
+      <LottieView source={pressAnimation} autoPlay loop style={styles.lottieAnimation} />
 
       <Text style={styles.title}>Press Setup Button</Text>
       <Text style={styles.subtitle}>
