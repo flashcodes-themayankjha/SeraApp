@@ -13,13 +13,20 @@ import { theme } from '../theme';
 import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import SlideSheet from '../../../components/SlideSheet';
+import { useRouter } from 'expo-router';
 
 
 const successAnimation = require('../assets/lottie/success.json');
 const pressAnimation = require('../assets/lottie/press.json');
 const wifiAnimation = require('../assets/lottie/wifi.json');
 
-
+// Define Device type (copied from DashboardHero.tsx)
+type Device = {
+  name: string;
+  room: string;
+  battery: number;
+  connected: boolean;
+};
 
 /* =================================================
    STEP DEFINITIONS
@@ -36,14 +43,15 @@ const STEPS: WifiStep[] = ['scan', 'connect-robot', 'configure-wifi', 'success']
 export default function WifiSetupSheet({
   visible,
   onClose,
+  onConnectRobot, // New prop
 }: {
   visible: boolean;
   onClose: () => void;
+  onConnectRobot: (device: Device) => void; // New prop type
 }) {
-  
+  const router = useRouter();
   const [step, setStep] = useState<WifiStep>('scan');
-
-  
+  const [ssid, setSsid] = useState(''); // Lifted ssid state
 
   if (!visible) return null;
 
@@ -57,6 +65,20 @@ export default function WifiSetupSheet({
   const goBack = () => {
     const i = STEPS.indexOf(step);
     if (i > 0) setStep(STEPS[i - 1]);
+  };
+
+  const handleFinish = () => {
+    setTimeout(() => {
+      // Construct a placeholder Device object
+      const connectedDevice: Device = {
+        name: ssid || 'Unknown Robot', // Use selected SSID as name
+        room: 'Living Room', // Placeholder
+        battery: 85, // Placeholder
+        connected: true, // Placeholder
+      };
+      onConnectRobot(connectedDevice); // Call the new prop
+      onClose();
+    }, 2000); // 2-second delay
   };
 
   return (
@@ -73,8 +95,8 @@ export default function WifiSetupSheet({
       >
         {step === 'scan' && <StepScan onNext={goNext} />}
         {step === 'connect-robot' && <StepConnectRobot onNext={goNext} />}
-        {step === 'configure-wifi' && <StepConfigureWifi onNext={goNext} />}
-        {step === 'success' && <StepSuccess onFinish={onClose} />}
+        {step === 'configure-wifi' && <StepConfigureWifi onNext={goNext} ssid={ssid} setSsid={setSsid} />}
+        {step === 'success' && <StepSuccess onFinish={handleFinish} />}
       </ScrollView>
     </SlideSheet>
   );
@@ -113,7 +135,7 @@ function Header({
         </TouchableOpacity>
 
         {/* TITLE */}
-        <Text style={styles.headerTitle}>Wi-Fi Setup</Text>
+        <Text style={styles.headerTitle}>Setup New Device</Text>
 
         {/* CLOSE */}
         <TouchableOpacity
@@ -198,8 +220,8 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
    STEP 3 — CONFIGURE WIFI
 ================================================= */
 
-function StepConfigureWifi({ onNext }: { onNext: () => void }) {
-  const [ssid, setSsid] = useState('');
+function StepConfigureWifi({ onNext, ssid, setSsid }: { onNext: () => void; ssid: string; setSsid: (ssid: string) => void }) {
+  // const [ssid, setSsid] = useState(''); // Removed local state
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState(''); // New state for error message
   const [isConnecting, setIsConnecting] = useState(false);

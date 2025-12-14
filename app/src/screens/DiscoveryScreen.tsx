@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
 import WifiSetupSheet from '../screens/WifiSetupSheet';
+import { useRouter } from 'expo-router';
 
 const HaloRing = ({
   delay,
@@ -151,6 +152,7 @@ const AnimatedEllipsis = () => {
 };
 
 export default function DiscoveryScreen() {
+  const router = useRouter();
   const [connectingTo, setConnectingTo] = useState<string | null>(null);
   const [activeRobot, setActiveRobot] = useState<string>('Sera Unit X-1');
   const [isSetupBtnPressed, setIsSetupBtnPressed] = useState(false);
@@ -173,6 +175,7 @@ export default function DiscoveryScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setConnectingTo(name);
     // In a real app, you'd initiate connection logic here.
+    router.replace('/dashboard');
   };
 
   return (
@@ -274,6 +277,12 @@ export default function DiscoveryScreen() {
         onClose={() => {
           setIsWifiSheetOpen(false);
           setShowRobotFace(true);
+        }}
+        onConnectRobot={(device) => {
+          console.log('Robot connected:', device);
+          setIsWifiSheetOpen(false);
+          setShowRobotFace(true);
+          router.replace('/dashboard');
         }}
       />
     </View>
