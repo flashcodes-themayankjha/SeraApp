@@ -41,6 +41,11 @@ export default function DashboardScreen() {
     setWifiSetupSheetVisible(false); // Close the sheet after connecting
   };
 
+  const handleConnectDeviceFromDrawer = (device: Device) => {
+    setConnectedDevice(device);
+    setDrawerOpen(false); // Close the drawer after connecting
+  };
+
   return (
     <View style={styles.container}>
       <DashboardHeader
@@ -82,6 +87,7 @@ export default function DashboardScreen() {
       <DeviceDrawer
         visible={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        onConnectDevice={handleConnectDeviceFromDrawer}
       />
 
       {/* Render WifiSetupSheet */}

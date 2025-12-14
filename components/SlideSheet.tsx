@@ -29,11 +29,13 @@ export default function SlideSheet({
   onClose,
   children,
   enableBackdrop = true,
+  initialSnapPoint, // New prop
 }: {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
   enableBackdrop?: boolean;
+  initialSnapPoint?: number; // Optional prop
 }) {
   const translateY = useRef(
     new Animated.Value(SNAP.CLOSED)
@@ -51,9 +53,10 @@ export default function SlideSheet({
 
   useEffect(() => {
     if (visible) {
+      const targetSnapPoint = initialSnapPoint !== undefined ? initialSnapPoint : SNAP.MID;
       Animated.parallel([
         Animated.spring(translateY, {
-          toValue: SNAP.MID,
+          toValue: targetSnapPoint,
           damping: 22,
           useNativeDriver: true,
         }),
@@ -63,7 +66,7 @@ export default function SlideSheet({
           useNativeDriver: true,
         }),
       ]).start(() => {
-        lastOffset.current = SNAP.MID;
+        lastOffset.current = targetSnapPoint;
       });
     } else {
       Animated.parallel([
@@ -81,7 +84,7 @@ export default function SlideSheet({
         lastOffset.current = SNAP.CLOSED;
       });
     }
-  }, [visible, translateY, backdropOpacity]);
+  }, [visible, translateY, backdropOpacity, initialSnapPoint]); // Add initialSnapPoint to dependencies
 
   /* =================================================
      PAN / DRAG
