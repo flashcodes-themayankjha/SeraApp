@@ -346,7 +346,12 @@ function StepSuccess({ onFinish }: { onFinish: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 4 OF 4</Text>
 
-      <LottieView source={successAnimation} autoPlay  style={styles.lottieAnimation} />
+      <LottieView source={successAnimation} autoPlay loop={false} 
+       colorFilters={[
+       {
+         keypath: '**',
+         color: '#D6BE8A',
+       },]} style={styles.lottieAnimation} />
 
       <Text style={styles.title}>Connection Successful</Text>
       <Text style={styles.subtitle}>
