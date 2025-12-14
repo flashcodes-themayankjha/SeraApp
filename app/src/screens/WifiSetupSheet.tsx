@@ -186,20 +186,38 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
 function StepConfigureWifi({ onNext }: { onNext: () => void }) {
   const [ssid, setSsid] = useState('');
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // New state for error message
+  const [isConnecting, setIsConnecting] = useState(false);
 
-  const availableNetworks = ['Home_Wifi_5G', 'Sera_Guest', 'Office_Net']; // Defined available networks
+  const availableNetworks = ['Home_Wifi_5G', 'Sera_Guest', 'Office_Net'];
+
+  const isValid = ssid.trim().length > 0;
 
   const handleContinue = () => {
+    if (isConnecting) {
+      return;
+    }
+
     if (!ssid) {
       setHasError(true);
+      setErrorMessage('Please select a network or enter an SSID.');
       return;
     }
-    if (availableNetworks.includes(ssid)) { // Check if SSID is already in the list
-      setHasError(true); // Set error if it's in the list
+    if (!availableNetworks.includes(ssid)) {
+      setHasError(true);
+      setErrorMessage('Invalid SSID. Please select from available networks or enter a valid one.');
       return;
     }
+
     setHasError(false);
-    onNext();
+    setErrorMessage(''); // Clear error message on success
+    setIsConnecting(true);
+
+    // Simulated connection delay
+    setTimeout(() => {
+      setIsConnecting(false);
+      onNext();
+    }, 2200);
   };
 
   return (
@@ -223,14 +241,17 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
           size={20}
           color={hasError ? '#ff6b6b' : theme.colors.textMuted}
         />
+
         <TextInput
           style={styles.inputPlaceholder}
           placeholder="Enter SSID"
           placeholderTextColor={theme.colors.textMuted}
           value={ssid}
-          onChangeText={setSsid}
-          autoCapitalize="none"
-          autoCorrect={false}
+          onChangeText={text => {
+            setSsid(text);
+            setHasError(false);
+          }}
+          editable={!isConnecting}
         />
 
         {hasError && (
@@ -243,21 +264,20 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
       </View>
 
       {/* ERROR CARD */}
-      {hasError && (
+      {hasError && !isConnecting && (
         <View style={styles.errorCard}>
           <MaterialIcons
             name="info"
             size={18}
             color="#ff6b6b"
-            style={{ marginTop: 3 }} // Added top padding
+            style={{ marginTop: 3 }}
           />
           <View style={{ flex: 1 }}>
             <Text style={styles.errorTitle}>
-              Selection Required
+              Error
             </Text>
             <Text style={styles.errorText}>
-              Please select a network from the list below or enter
-              a valid network name manually.
+              {errorMessage}
             </Text>
           </View>
         </View>
@@ -268,7 +288,7 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
         <Text style={styles.networkHeaderText}>
           AVAILABLE NETWORKS
         </Text>
-        <TouchableOpacity>
+        <TouchableOpacity disabled={isConnecting}>
           <Text style={styles.scanAgain}>⟳ Scan Again</Text>
         </TouchableOpacity>
       </View>
@@ -277,34 +297,43 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
         name="Home_Wifi_5G"
         signal="Strong Signal"
         onPress={() => {
-          setSsid('Home_Wifi_5G');
-          setHasError(false);
+          if (!isConnecting) {
+            setSsid('Home_Wifi_5G');
+            setHasError(false);
+          }
         }}
-        isActive={ssid === 'Home_Wifi_5G'} // Pass isActive prop
       />
       <NetworkItem
         name="Sera_Guest"
         signal="Moderate Signal"
         onPress={() => {
-          setSsid('Sera_Guest');
-          setHasError(false);
+          if (!isConnecting) {
+            setSsid('Sera_Guest');
+            setHasError(false);
+          }
         }}
-        isActive={ssid === 'Sera_Guest'} // Pass isActive prop
       />
       <NetworkItem
         name="Office_Net"
         signal="Weak Signal"
         onPress={() => {
-          setSsid('Office_Net');
-          setHasError(false);
+          if (!isConnecting) {
+            setSsid('Office_Net');
+            setHasError(false);
+          }
         }}
-        isActive={ssid === 'Office_Net'} // Pass isActive prop
       />
 
-      <PrimaryButton label="Continue" onPress={handleContinue} />
+      <PrimaryButton
+        label={isConnecting ? 'Connecting…' : 'Continue'}
+        loading={isConnecting}
+        disabled={!isValid || isConnecting}
+        onPress={handleContinue}
+      />
     </View>
   );
 }
+
 
 /* =================================================
    STEP 4 — SUCCESS
@@ -585,16 +614,14 @@ function NetworkItem({
   name,
   signal,
   onPress,
-  isActive, // New prop
 }: {
   name: string;
   signal: string;
   onPress: () => void;
-  isActive: boolean; // New prop type
 }) {
   return (
     <TouchableOpacity
-      style={[styles.networkItem, isActive && styles.networkItemActive]} // Apply active style
+      style={styles.networkItem}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -618,10 +645,85 @@ function NetworkItem({
   );
 }
 
-function PrimaryButton({ label, onPress }: any) {
+
+function PrimaryButton({
+  label,
+  onPress,
+  disabled,
+  loading,
+}: {
+  label: string;
+  onPress?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
+  const [dots, setDots] = useState(''); // New state for animating dots
+  const spin = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (loading) {
+      let dotCount = 0;
+      const interval = setInterval(() => {
+        dotCount = (dotCount + 1) % 4;
+        setDots('.'.repeat(dotCount));
+      }, 300);
+      return () => clearInterval(interval);
+    } else {
+      setDots('');
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading) return;
+
+    Animated.loop(
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [loading]);
+
+  const rotation = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
-    <TouchableOpacity style={styles.primaryBtn} onPress={onPress}>
-      <Text style={styles.primaryText}>{label}</Text>
+    <TouchableOpacity
+      style={[
+        styles.primaryBtn,
+        disabled && !loading && styles.primaryBtnDisabled,
+        loading && styles.primaryBtnLoading,
+      ]}
+      disabled={disabled}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      {loading ? (
+        <View style={styles.primaryBtnContent}>
+          {/* Phantom text for width calculation */}
+          <Text style={[styles.primaryText, styles.primaryTextPhantom]}>
+            Connecting...
+          </Text>
+          {/* Visible text: "Connecting" (static) and dots (animating) */}
+          <View style={styles.loadingTextContainer}>
+            <Text style={styles.primaryText}>Connecting</Text>
+            <Text style={styles.primaryText}>{dots}</Text>
+          </View>
+        </View>
+      ) : (
+        <Text
+          style={[
+            styles.primaryText,
+            disabled && styles.primaryTextDisabled,
+          ]}
+        >
+          {label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -829,6 +931,16 @@ scanDot: {
     alignItems: 'center',
   },
 
+primaryBtnDisabled: {
+  backgroundColor: theme.colors.surfaceAlt,
+  opacity: 0.55,
+},
+
+primaryTextDisabled: {
+  color: theme.colors.textMuted,
+},
+
+
   primaryText: {
     color: '#000',
     fontWeight: '700',
@@ -860,7 +972,7 @@ networkName: {
 },
 
 networkSignal: {
-  color: theme.colors.textSecondary, // GREY
+  color: theme.colors.textMuted, // GREY
   fontSize: 12,
   marginTop: 2,
 },
@@ -928,5 +1040,54 @@ networkItemActive: {
   scanAgain: {
     color: theme.colors.accent,
     fontWeight: '600',
+  },
+
+  passwordLabel: {
+    color: theme.colors.textPrimary,
+    marginBottom: 8,
+    marginTop: 12,
+    fontWeight: '600',
+  },
+
+  securityNote: {
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    marginTop: 16,
+    marginBottom: 24, // Added bottom padding
+    borderWidth: 1,
+    borderColor: 'rgba(218, 196, 140, 0.35)',
+  },
+
+  securityText: {
+    flex: 1,
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+
+  primaryBtnLoading: {
+    // Removed border styles as per user request
+  },
+  primaryBtnContent: {
+    position: 'relative',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryTextPhantom: {
+    opacity: 0,
+  },
+  loadingTextContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
