@@ -4,32 +4,29 @@
     "slug": "sera",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "app",
     "userInterfaceStyle": "dark",
     "icon": "./assets/images/sera_foreground.png",
-    "ios": {
-      "supportsTablet": true
+    "splash": {
+      "image": "./assets/images/sera_foreground.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
     },
     "android": {
+      "package": "com.mayankjha.sera",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/sera_foreground.png",
         "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true
+      "statusBar": {
+        "backgroundColor": "#000000",
+        "barStyle": "light-content"
+      }
     },
     "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/sera_foreground.png",
-          "resizeMode": "contain",
-          "backgroundColor": "#000000",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
-        }
-      ],
       "expo-router"
-    ]
+    ],
+    "ios": {
+      "bundleIdentifier": "com.yourname.sera"
+    }
   }
 }
