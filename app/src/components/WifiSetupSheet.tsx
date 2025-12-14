@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: theme.spacing.xl,
-    height: '60%',
+    height: '85%',
   },
   title: {
     fontSize: 24,

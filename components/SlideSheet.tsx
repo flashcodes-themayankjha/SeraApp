@@ -16,7 +16,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const SNAP = {
   CLOSED: SCREEN_HEIGHT,
-  MID: SCREEN_HEIGHT * 0.45,
+  MID: SCREEN_HEIGHT * 0.20, // Changed to 20% from the top (80% of screen height)
   EXPANDED: SCREEN_HEIGHT * 0.08,
 };
 

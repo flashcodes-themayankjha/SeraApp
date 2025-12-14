@@ -9,7 +9,6 @@ import {
   Easing,
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
 import WifiSetupSheet from '../screens/WifiSetupSheet';
@@ -157,10 +156,12 @@ export default function DiscoveryScreen() {
   const [isSetupBtnPressed, setIsSetupBtnPressed] = useState(false);
   const [isExtendVisionEnabled, setIsExtendVisionEnabled] = useState(false);
   const [isWifiSheetOpen, setIsWifiSheetOpen] = useState(false);
+  const [showRobotFace, setShowRobotFace] = useState(true);
 
   const handleSetupPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsWifiSheetOpen(true);
+    setShowRobotFace(false);
   };
 
   const handleSelectRobot = (name: string) => {
@@ -183,8 +184,8 @@ export default function DiscoveryScreen() {
       >
         {/* Hero */}
         <View style={styles.hero}>
-          <RobotFace isConnecting={connectingTo !== null} />
-          <Text style={styles.title}>Hello! Let's find your Sera.</Text>
+          {showRobotFace && <RobotFace isConnecting={connectingTo !== null} />}
+          <Text style={styles.title}>Hello! Let&#39;s find your Sera.</Text>
           <Text style={styles.subtitle}>
             Make sure your robot is turned on and nearby.
           </Text>
@@ -270,7 +271,10 @@ export default function DiscoveryScreen() {
       </ScrollView>
       <WifiSetupSheet
         visible={isWifiSheetOpen}
-        onClose={() => setIsWifiSheetOpen(false)}
+        onClose={() => {
+          setIsWifiSheetOpen(false);
+          setShowRobotFace(true);
+        }}
       />
     </View>
   );
