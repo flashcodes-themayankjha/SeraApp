@@ -17,6 +17,7 @@ import LottieView from 'lottie-react-native';
 const touchIcon = require('../../../assets/touch.png');
 const successAnimation = require('../assets/lottie/success.json');
 const pressAnimation = require('../assets/lottie/press.json');
+const wifiAnimation = require('../assets/lottie/wifi.json');
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -159,16 +160,12 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 2 OF 4</Text>
 
-      <Illustration
-        animated
-        iconName="wifi"
-        haloConfig={{
-          ringColor: theme.colors.accent,
-          ringSize: 80,
-          ringScaleFactor: 1.8,
-          ringDuration: 1500,
-        }}
-      />
+      <LottieView source={wifiAnimation} autoPlay loop={false}
+       colorFilters={[
+       {
+         keypath: '**',
+         color: '#D6BE8A', // Accent color
+       },]} style={styles.lottieAnimation} />
 
       <Text style={styles.title}>Connect to Robot</Text>
       <Text style={styles.subtitle}>
