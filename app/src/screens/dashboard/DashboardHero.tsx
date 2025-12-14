@@ -79,31 +79,31 @@ const GOLD = '#D6BE8A';
 
 const styles = StyleSheet.create({
   hero: {
-    height: 360,
+    height: 320,
     borderRadius: 32,
     backgroundColor: theme.colors.surface,
     alignItems: 'center',
-    paddingTop: 36,
-    marginBottom: 28,
+    paddingTop: 20,
+    marginBottom: 20,
     overflow: 'hidden',
   },
 
   haloOuter: {
     position: 'absolute',
-    top: 54,
-    width: 208,
-    height: 208,
-    borderRadius: 104,
+    top: 28,
+    width: 177,
+    height: 177,
+    borderRadius: 88.5,
     borderWidth: 2,
     borderColor: 'rgba(214,190,138,0.35)',
   },
 
   haloInner: {
     position: 'absolute',
-    top: 70,
-    width: 176,
-    height: 176,
-    borderRadius: 88,
+    top: 44,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     borderWidth: 1,
     borderColor: 'rgba(214,190,138,0.6)',
   },
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     resizeMode: 'contain',
-    marginTop: 20,
+    marginTop: 10,
     marginBottom: 4,
     transform: [{ translateX: 4 }, { translateY: 38 }],
   },
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
     borderWidth: 1,
     borderColor: 'rgba(214,190,138,0.45)',
-    marginBottom: 14,
+    marginBottom: 10,
   },
 
   statusDot: {
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '800',
     color: '#fff',
-    marginTop: 4,
+    marginTop: 2,
   },
 
   deviceSub: {
     fontSize: 15,
     color: theme.colors.textSecondary,
-    marginTop: 6,
+    marginTop: 4,
   },
 });

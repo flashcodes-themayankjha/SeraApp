@@ -63,14 +63,14 @@ export default function DashboardScreen() {
         </View>
 
         {/* QUICK ACTIONS */}
-        <Text style={[theme.typography.title, { color: theme.colors.textPrimary, textTransform: 'uppercase', marginBottom: 16 }]}>QUICK ACTIONS</Text>
+        <Text style={[theme.typography.title, { color: theme.colors.textPrimary, textTransform: 'uppercase', marginBottom: 12 }]}>QUICK ACTIONS</Text>
        
 <View style={{ flexDirection: 'row', gap: 16 }}>
   <ActionCard icon="mood" title="Emotions" subtitle="Set mood" />
   <ActionCard icon="volume-up" title="Play Sound" subtitle="Library" />
 </View>
 
-<View style={{ flexDirection: 'row', gap: 16, marginTop: 16 }}>
+<View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
   <ActionCard icon="tune" title="Calibrate" subtitle="Sensors" />
   <ActionCard icon="system-update" title="OTA Update" subtitle="v2.4.1" />
 </View>
@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   content: {
-    padding: 20,
-    paddingBottom: 120,
+    padding: 16,
+    paddingBottom: 80,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 28,
+    marginBottom: 20,
   },
   section: {
     gap: 16,

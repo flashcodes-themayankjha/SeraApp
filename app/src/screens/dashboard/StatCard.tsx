@@ -26,16 +26,16 @@ const styles = StyleSheet.create({
     width: '31%',
     backgroundColor: theme.colors.surface,
     borderRadius: 20,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
   },
   label: {
     color: theme.colors.textMuted,
-    marginTop: 8,
+    marginTop: 6,
   },
   value: {
     color: theme.colors.textPrimary,
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: 2,
   },
 });

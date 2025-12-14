@@ -43,10 +43,10 @@ export default function ActionCard({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    minHeight: 150,
+    minHeight: 130,
     backgroundColor: theme.colors.surface,
     borderRadius: 22,
-    padding: 18,
+    padding: 14,
     justifyContent: 'space-between',
 
     // subtle depth
@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
   },
 
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: theme.colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
@@ -70,12 +70,12 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
-    marginTop: 14,
+    marginTop: 10,
   },
 
   subtitle: {
     color: theme.colors.textMuted,
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 2,
   },
 });

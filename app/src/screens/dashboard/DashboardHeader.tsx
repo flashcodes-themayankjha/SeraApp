@@ -28,8 +28,8 @@ export default function DashboardHeader({ onMenu, onAddDevice }: { onMenu: () =>
 
 const styles = StyleSheet.create({
   header: {
-    padding: 20,
-    paddingTop: 40, // Added top padding for safe area/status bar
+    padding: 16,
+    paddingTop: 34, // Added top padding for safe area/status bar
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
