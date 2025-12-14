@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
   ScrollView,
   Easing,
   TextInput, // Added TextInput
@@ -13,13 +12,14 @@ import { useEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
+import SlideSheet from '../../../components/SlideSheet';
 
-const touchIcon = require('../../../assets/touch.png');
+
 const successAnimation = require('../assets/lottie/success.json');
 const pressAnimation = require('../assets/lottie/press.json');
 const wifiAnimation = require('../assets/lottie/wifi.json');
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+
 
 /* =================================================
    STEP DEFINITIONS
@@ -40,16 +40,10 @@ export default function WifiSetupSheet({
   visible: boolean;
   onClose: () => void;
 }) {
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  
   const [step, setStep] = useState<WifiStep>('scan');
 
-  useEffect(() => {
-    Animated.spring(translateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      damping: 20,
-      useNativeDriver: true,
-    }).start();
-  }, [visible]);
+  
 
   if (!visible) return null;
 
@@ -66,9 +60,7 @@ export default function WifiSetupSheet({
   };
 
   return (
-    <Animated.View
-      style={[styles.sheet, { transform: [{ translateY }] }]}
-    >
+    <SlideSheet visible={visible} onClose={onClose}>
       <Header
         step={stepIndex}
         onBack={step !== 'scan' ? goBack : undefined}
@@ -84,7 +76,7 @@ export default function WifiSetupSheet({
         {step === 'configure-wifi' && <StepConfigureWifi onNext={goNext} />}
         {step === 'success' && <StepSuccess onFinish={onClose} />}
       </ScrollView>
-    </Animated.View>
+    </SlideSheet>
   );
 }
 
@@ -366,150 +358,9 @@ function StepSuccess({ onFinish }: { onFinish: () => void }) {
    SHARED COMPONENTS
 ================================================= */
 
-type HaloConfig = {
-  ringColor?: string;
-  ringSize?: number;
-  ringScaleFactor?: number;
-  ringDuration?: number;
-};
 
-function Illustration({ animated, iconName, haloConfig }: { animated?: boolean; iconName?: string; haloConfig?: HaloConfig }) {
-  const bounce = useRef(new Animated.Value(0)).current;
-  const iconPulse = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    if (!animated) return;
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(bounce, {
-          toValue: -6,
-          duration: 300,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bounce, {
-          toValue: 0,
-          duration: 300,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.delay(600),
-      ])
-    ).start();
 
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(iconPulse, {
-          toValue: 1.1,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(iconPulse, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [animated]);
-
-  return (
-    <View style={styles.illustration}>
-      <View style={styles.iconWrapper}>
-        {animated && (
-          <>
-            <PulsingHalo delay={0} {...haloConfig} />
-            <PulsingHalo delay={700} {...haloConfig} />
-            <PulsingHalo delay={1400} {...haloConfig} />
-          </>
-        )}
-
-        {iconName ? (
-          <Animated.View
-            style={animated && { transform: [{ translateY: bounce }, { scale: iconPulse }] }}
-          >
-            <MaterialIcons
-              name={iconName}
-              size={48}
-              color={theme.colors.accent}
-            />
-          </Animated.View>
-        ) : (
-          <Animated.Image
-            source={touchIcon}
-            style={[
-              styles.touchIcon,
-              animated && { transform: [{ translateY: bounce }, { scale: iconPulse }] },
-            ]}
-          />
-        )}
-      </View>
-    </View>
-  );
-}
-
-function PulsingHalo({
-  delay,
-  ringColor = theme.colors.accent,
-  ringSize = 56,
-  ringScaleFactor = 1.6,
-  ringDuration = 2000,
-}: {
-  delay: number;
-  ringColor?: string;
-  ringSize?: number;
-  ringScaleFactor?: number;
-  ringDuration?: number;
-}) {
-  const ring = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.delay(delay),
-        Animated.timing(ring, {
-          toValue: 1,
-          duration: ringDuration,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(ring, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [delay, ring, ringDuration]);
-
-  return (
-    <Animated.View
-      style={[
-        styles.haloRing,
-        {
-          width: ringSize,
-          height: ringSize,
-          borderRadius: ringSize / 2,
-          borderColor: ringColor,
-          opacity: ring.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.6, 0],
-          }),
-          transform: [
-            {
-              scale: ring.interpolate({
-                inputRange: [0, 1],
-                outputRange: [1, ringScaleFactor],
-              }),
-            },
-          ],
-        },
-      ]}
-    />
-  );
-}
 
 function ScanningStatusCard() {
   const rotate = useRef(new Animated.Value(0)).current;
@@ -746,16 +597,7 @@ function GhostButton({ label, onPress }: any) {
 ================================================= */
 
 const styles = StyleSheet.create({
-  sheet: {
-    position: 'absolute',
-    bottom: 0,
-    height: '92%',
-    width: '100%',
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: theme.spacing.xl,
-  },
+  
 
   header: {
     marginBottom: theme.spacing.lg,
@@ -807,43 +649,16 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
 
-  illustration: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 0,
-    borderColor: theme.colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
+  
   lottieAnimation: {
     width: 150, // Adjust size as needed
     height: 150, // Adjust size as needed
     marginBottom: 24,
   },
 
-  iconWrapper: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  
 
-  touchIcon: {
-    width: 48,
-    height: 48,
-    tintColor: theme.colors.accent,
-  },
-
-  haloRing: {
-    position: 'absolute',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: theme.colors.accent,
-  },
+  
 
   step: {
     color: theme.colors.textMuted,
