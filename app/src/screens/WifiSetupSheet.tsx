@@ -249,7 +249,7 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
             name="info"
             size={18}
             color="#ff6b6b"
-            style={{ marginTop: 2 }} // Added top padding
+            style={{ marginTop: 3 }} // Added top padding
           />
           <View style={{ flex: 1 }}>
             <Text style={styles.errorTitle}>
