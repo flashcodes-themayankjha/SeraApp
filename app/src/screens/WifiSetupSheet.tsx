@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const touchIcon = require('../../../assets/touch.png');
 
@@ -139,11 +140,7 @@ function StepScan({ onNext }: { onNext: () => void }) {
         <Text style={{ color: theme.colors.accent }}>blue</Text>.
       </Text>
 
-      <StatusCard
-        title="Scanning…"
-        subtitle="Waiting for setup button signal"
-      />
-
+     <ScanningStatusCard />
       <PrimaryButton label="Continue" onPress={onNext} />
     </View>
   );
@@ -158,7 +155,16 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 2 OF 4</Text>
 
-      <Illustration />
+      <Illustration
+        animated
+        iconName="wifi"
+        haloConfig={{
+          ringColor: theme.colors.accent,
+          ringSize: 80,
+          ringScaleFactor: 1.8,
+          ringDuration: 1500,
+        }}
+      />
 
       <Text style={styles.title}>Connect to Robot</Text>
       <Text style={styles.subtitle}>
@@ -221,8 +227,16 @@ function StepSuccess({ onFinish }: { onFinish: () => void }) {
    SHARED COMPONENTS
 ================================================= */
 
-function Illustration({ animated }: { animated?: boolean }) {
+type HaloConfig = {
+  ringColor?: string;
+  ringSize?: number;
+  ringScaleFactor?: number;
+  ringDuration?: number;
+};
+
+function Illustration({ animated, iconName, haloConfig }: { animated?: boolean; iconName?: string; haloConfig?: HaloConfig }) {
   const bounce = useRef(new Animated.Value(0)).current;
+  const iconPulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (!animated) return;
@@ -243,6 +257,23 @@ function Illustration({ animated }: { animated?: boolean }) {
         Animated.delay(600),
       ])
     ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(iconPulse, {
+          toValue: 1.1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(iconPulse, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, [animated]);
 
   return (
@@ -250,25 +281,49 @@ function Illustration({ animated }: { animated?: boolean }) {
       <View style={styles.iconWrapper}>
         {animated && (
           <>
-            <PulsingHalo delay={0} />
-            <PulsingHalo delay={700} />
-            <PulsingHalo delay={1400} />
+            <PulsingHalo delay={0} {...haloConfig} />
+            <PulsingHalo delay={700} {...haloConfig} />
+            <PulsingHalo delay={1400} {...haloConfig} />
           </>
         )}
 
-        <Animated.Image
-          source={touchIcon}
-          style={[
-            styles.touchIcon,
-            animated && { transform: [{ translateY: bounce }] },
-          ]}
-        />
+        {iconName ? (
+          <Animated.View
+            style={animated && { transform: [{ translateY: bounce }, { scale: iconPulse }] }}
+          >
+            <MaterialIcons
+              name={iconName}
+              size={48}
+              color={theme.colors.accent}
+            />
+          </Animated.View>
+        ) : (
+          <Animated.Image
+            source={touchIcon}
+            style={[
+              styles.touchIcon,
+              animated && { transform: [{ translateY: bounce }, { scale: iconPulse }] },
+            ]}
+          />
+        )}
       </View>
     </View>
   );
 }
 
-function PulsingHalo({ delay }: { delay: number }) {
+function PulsingHalo({
+  delay,
+  ringColor = theme.colors.accent,
+  ringSize = 56,
+  ringScaleFactor = 1.6,
+  ringDuration = 2000,
+}: {
+  delay: number;
+  ringColor?: string;
+  ringSize?: number;
+  ringScaleFactor?: number;
+  ringDuration?: number;
+}) {
   const ring = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -277,7 +332,7 @@ function PulsingHalo({ delay }: { delay: number }) {
         Animated.delay(delay),
         Animated.timing(ring, {
           toValue: 1,
-          duration: 2000,
+          duration: ringDuration,
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
@@ -288,13 +343,17 @@ function PulsingHalo({ delay }: { delay: number }) {
         }),
       ])
     ).start();
-  }, []);
+  }, [delay, ring, ringDuration]);
 
   return (
     <Animated.View
       style={[
         styles.haloRing,
         {
+          width: ringSize,
+          height: ringSize,
+          borderRadius: ringSize / 2,
+          borderColor: ringColor,
           opacity: ring.interpolate({
             inputRange: [0, 1],
             outputRange: [0.6, 0],
@@ -303,7 +362,7 @@ function PulsingHalo({ delay }: { delay: number }) {
             {
               scale: ring.interpolate({
                 inputRange: [0, 1],
-                outputRange: [1, 1.6],
+                outputRange: [1, ringScaleFactor],
               }),
             },
           ],
@@ -313,14 +372,109 @@ function PulsingHalo({ delay }: { delay: number }) {
   );
 }
 
-function StatusCard({ title, subtitle }: any) {
+function ScanningStatusCard() {
+  const rotate = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(1)).current;
+  const dotBlink = useRef(new Animated.Value(1)).current;
+  const [dots, setDots] = useState('.');
+
+  /* Icon rotation + pulse */
+  useEffect(() => {
+    Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(pulse, {
+            toValue: 1.08,
+            duration: 900,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulse, {
+            toValue: 1,
+            duration: 900,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(rotate, {
+          toValue: 1,
+          duration: 4000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    /* Golden dot blink */
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dotBlink, {
+          toValue: 0.3,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dotBlink, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    /* Scanning dots */
+    const interval = setInterval(() => {
+      setDots(prev =>
+        prev === '.' ? '..' : prev === '..' ? '...' : '.'
+      );
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const rotation = rotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
-    <View style={styles.statusCard}>
-      <Text style={styles.statusTitle}>{title}</Text>
-      <Text style={styles.statusSub}>{subtitle}</Text>
+    <View style={styles.scanCard}>
+      <View style={styles.scanLeft}>
+        <Animated.View
+          style={[
+            styles.scanIcon,
+            {
+              transform: [{ scale: pulse }, { rotate: rotation }],
+            },
+          ]}
+        >
+          <MaterialIcons
+            name="radar"
+            size={24}
+            color={theme.colors.accent}
+          />
+        </Animated.View>
+
+        <View>
+          <Text style={styles.scanTitle}>
+            Scanning{dots}
+          </Text>
+          <Text style={styles.scanSubtitle}>
+            Waiting for setup button signal
+          </Text>
+        </View>
+      </View>
+
+      <Animated.View
+        style={[
+          styles.scanDot,
+          { opacity: dotBlink },
+        ]}
+      />
     </View>
   );
 }
+
+
 
 function NetworkItem({ name, signal }: any) {
   return (
@@ -417,7 +571,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
@@ -425,8 +579,8 @@ const styles = StyleSheet.create({
   },
 
   iconWrapper: {
-    width: 48,
-    height: 48,
+    width: 80,
+    height: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -465,6 +619,56 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
   },
+
+scanCard: {
+  width: '100%',
+  backgroundColor: theme.colors.surface,
+  borderRadius: theme.radius.lg,
+  padding: theme.spacing.lg,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 32,
+  ...theme.shadows.card,
+},
+
+scanLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 14,
+},
+
+scanIcon: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: theme.colors.surfaceAlt,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+
+
+
+
+scanTitle: {
+  color: theme.colors.textPrimary,
+  fontWeight: '600',
+  fontSize: 15,
+},
+
+scanSubtitle: {
+  color: theme.colors.textMuted,
+  fontSize: 12,
+  marginTop: 2,
+},
+
+scanDot: {
+  width: 8,
+  height: 8,
+  borderRadius: 4,
+  backgroundColor: theme.colors.accent,
+},
 
   statusCard: {
     width: '100%',
