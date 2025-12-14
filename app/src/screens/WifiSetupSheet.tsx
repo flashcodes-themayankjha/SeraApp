@@ -7,6 +7,7 @@ import {
   Dimensions,
   ScrollView,
   Easing,
+  TextInput, // Added TextInput
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
@@ -183,20 +184,121 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
 ================================================= */
 
 function StepConfigureWifi({ onNext }: { onNext: () => void }) {
+  const [ssid, setSsid] = useState('');
+  const [hasError, setHasError] = useState(false);
+
+  const availableNetworks = ['Home_Wifi_5G', 'Sera_Guest', 'Office_Net']; // Defined available networks
+
+  const handleContinue = () => {
+    if (!ssid) {
+      setHasError(true);
+      return;
+    }
+    if (availableNetworks.includes(ssid)) { // Check if SSID is already in the list
+      setHasError(true); // Set error if it's in the list
+      return;
+    }
+    setHasError(false);
+    onNext();
+  };
+
   return (
     <View>
       <Text style={styles.step}>STEP 3 OF 4</Text>
 
-      <Text style={styles.title}>Select Network</Text>
+      <Text style={styles.title}>Wi-Fi Setup</Text>
       <Text style={styles.subtitle}>
-        Choose your home Wi-Fi network to connect Sera.
+        Choose a network for your Sera robot to connect to.
       </Text>
 
-      <NetworkItem name="Home_Wifi_5G" signal="Strong Signal" />
-      <NetworkItem name="Sera_Guest" signal="Moderate Signal" />
-      <NetworkItem name="Office_Net" signal="Weak Signal" />
+      {/* SSID INPUT */}
+      <View
+        style={[
+          styles.inputField,
+          hasError && styles.inputError,
+        ]}
+      >
+        <MaterialIcons
+          name="wifi"
+          size={20}
+          color={hasError ? '#ff6b6b' : theme.colors.textMuted}
+        />
+        <TextInput
+          style={styles.inputPlaceholder}
+          placeholder="Enter SSID"
+          placeholderTextColor={theme.colors.textMuted}
+          value={ssid}
+          onChangeText={setSsid}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
 
-      <PrimaryButton label="Connect" onPress={onNext} />
+        {hasError && (
+          <MaterialIcons
+            name="error-outline"
+            size={20}
+            color="#ff6b6b"
+          />
+        )}
+      </View>
+
+      {/* ERROR CARD */}
+      {hasError && (
+        <View style={styles.errorCard}>
+          <MaterialIcons
+            name="info"
+            size={18}
+            color="#ff6b6b"
+            style={{ marginTop: 2 }} // Added top padding
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.errorTitle}>
+              Selection Required
+            </Text>
+            <Text style={styles.errorText}>
+              Please select a network from the list below or enter
+              a valid network name manually.
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* AVAILABLE NETWORKS */}
+      <View style={styles.networkHeader}>
+        <Text style={styles.networkHeaderText}>
+          AVAILABLE NETWORKS
+        </Text>
+        <TouchableOpacity>
+          <Text style={styles.scanAgain}>⟳ Scan Again</Text>
+        </TouchableOpacity>
+      </View>
+
+      <NetworkItem
+        name="Home_Wifi_5G"
+        signal="Strong Signal"
+        onPress={() => {
+          setSsid('Home_Wifi_5G');
+          setHasError(false);
+        }}
+      />
+      <NetworkItem
+        name="Sera_Guest"
+        signal="Moderate Signal"
+        onPress={() => {
+          setSsid('Sera_Guest');
+          setHasError(false);
+        }}
+      />
+      <NetworkItem
+        name="Office_Net"
+        signal="Weak Signal"
+        onPress={() => {
+          setSsid('Office_Net');
+          setHasError(false);
+        }}
+      />
+
+      <PrimaryButton label="Continue" onPress={handleContinue} />
     </View>
   );
 }
@@ -476,12 +578,38 @@ function ScanningStatusCard() {
 
 
 
-function NetworkItem({ name, signal }: any) {
+function NetworkItem({
+  name,
+  signal,
+  onPress,
+}: {
+  name: string;
+  signal: string;
+  onPress: () => void;
+}) {
   return (
-    <View style={styles.networkItem}>
-      <Text style={styles.networkName}>{name}</Text>
-      <Text style={styles.networkSignal}>{signal}</Text>
-    </View>
+    <TouchableOpacity
+      style={styles.networkItem}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      <MaterialIcons
+        name="wifi"
+        size={22}
+        color={theme.colors.textMuted}
+      />
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.networkName}>{name}</Text>
+        <Text style={styles.networkSignal}>{signal}</Text>
+      </View>
+
+      <MaterialIcons
+        name="lock"
+        size={18}
+        color={theme.colors.textMuted}
+      />
+    </TouchableOpacity>
   );
 }
 
@@ -710,19 +838,74 @@ scanDot: {
   },
 
   networkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
+    ...theme.shadows.card,
   },
 
-  networkName: {
+  inputField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.lg,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: 12,
+  },
+
+  inputError: {
+    borderColor: '#ff6b6b',
+  },
+
+  inputPlaceholder: {
+    flex: 1,
     color: theme.colors.textPrimary,
-    fontWeight: '600',
   },
 
-  networkSignal: {
-    color: theme.colors.textMuted,
+  errorCard: {
+    flexDirection: 'row',
+    gap: 12,
+    backgroundColor: 'rgba(255, 107, 107, 0.12)',
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.4)',
+  },
+
+  errorTitle: {
+    color: '#ff6b6b',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+
+  errorText: {
+    color: '#ffb3b3',
     fontSize: 12,
+  },
+
+  networkHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  networkHeaderText: {
+    color: theme.colors.textPrimary,
+    letterSpacing: 1,
+    fontSize: 12,
+  },
+
+  scanAgain: {
+    color: theme.colors.accent,
+    fontWeight: '600',
   },
 });
