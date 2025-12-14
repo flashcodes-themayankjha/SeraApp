@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { theme } from '../../theme';
+import { useLocalSearchParams } from 'expo-router';
 
 import DashboardHeader from './DashboardHeader';
 import DeviceDrawer from './DeviceDrawer';
@@ -19,9 +20,21 @@ type Device = {
 };
 
 export default function DashboardScreen() {
+  const { deviceName } = useLocalSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [wifiSetupSheetVisible, setWifiSetupSheetVisible] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null); // New state for connected device
+
+  useEffect(() => {
+    if (deviceName) {
+      setConnectedDevice({
+        name: deviceName as string,
+        room: 'Living Room', // Placeholder, or fetch from a store/API
+        battery: 100, // Placeholder
+        connected: true,
+      });
+    }
+  }, [deviceName]);
 
   const handleRobotConnect = (device: Device) => {
     setConnectedDevice(device);

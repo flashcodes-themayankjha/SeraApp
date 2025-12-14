@@ -175,7 +175,7 @@ export default function DiscoveryScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setConnectingTo(name);
     // In a real app, you'd initiate connection logic here.
-    router.replace('/dashboard');
+    router.replace({ pathname: '/dashboard', params: { deviceName: name } });
   };
 
   return (
@@ -282,7 +282,7 @@ export default function DiscoveryScreen() {
           console.log('Robot connected:', device);
           setIsWifiSheetOpen(false);
           setShowRobotFace(true);
-          router.replace('/dashboard');
+          router.replace({ pathname: '/dashboard', params: { deviceName: device.name } });
         }}
       />
     </View>
