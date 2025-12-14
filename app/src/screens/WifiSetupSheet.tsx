@@ -1,4 +1,4 @@
-import {
+import { 
   View,
   Text,
   StyleSheet,
@@ -186,8 +186,6 @@ function StepConnectRobot({ onNext }: { onNext: () => void }) {
 function StepConfigureWifi({ onNext }: { onNext: () => void }) {
   const [ssid, setSsid] = useState('');
   const [hasError, setHasError] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // New state
-  const revealAnim = useRef(new Animated.Value(0)).current; // New animated value
 
   const availableNetworks = ['Home_Wifi_5G', 'Sera_Guest', 'Office_Net']; // Defined available networks
 
@@ -233,17 +231,6 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
           onChangeText={setSsid}
           autoCapitalize="none"
           autoCorrect={false}
-          onFocus={() => {
-            if (!showPassword) {
-              setShowPassword(true);
-              Animated.timing(revealAnim, {
-                toValue: 1,
-                duration: 350,
-                easing: Easing.out(Easing.cubic),
-                useNativeDriver: false,
-              }).start();
-            }
-          }}
         />
 
         {hasError && (
@@ -254,65 +241,6 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
           />
         )}
       </View>
-
-      <Animated.View
-        style={{
-          overflow: 'hidden',
-          opacity: revealAnim,
-          transform: [
-            {
-              translateY: revealAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [-8, 0],
-              }),
-            },
-          ],
-          maxHeight: revealAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 260],
-          }),
-        }}
-      >
-        {/* PASSWORD */}
-        <Text style={styles.passwordLabel}>Password</Text>
-
-        <View style={styles.inputField}>
-          <MaterialIcons
-            name="lock"
-            size={20}
-            color={theme.colors.textMuted}
-          />
-
-          <TextInput
-            style={styles.inputPlaceholder}
-            placeholder="Enter Password"
-            placeholderTextColor={theme.colors.textMuted}
-            secureTextEntry
-          />
-
-          <MaterialIcons
-            name="visibility"
-            size={20}
-            color={theme.colors.textMuted}
-          />
-        </View>
-
-        {/* SECURITY NOTE */}
-        <View style={styles.securityNote}>
-          <MaterialIcons
-            name="info"
-            size={18}
-            color={theme.colors.accent}
-          />
-          <Text style={styles.securityText}>
-            <Text style={{ fontWeight: '600', color: theme.colors.accent }}>
-              Security Note:{' '}
-            </Text>
-            Sera works best with WPA2/WPA3 security protocols on 2.4GHz
-            networks for optimal stability.
-          </Text>
-        </View>
-      </Animated.View>
 
       {/* ERROR CARD */}
       {hasError && (
@@ -920,6 +848,22 @@ scanDot: {
     ...theme.shadows.card,
   },
 
+networkName: {
+  color: theme.colors.textPrimary, // WHITE
+  fontWeight: '600',
+  fontSize: 13,
+},
+
+networkSignal: {
+  color: theme.colors.textSecondary, // GREY
+  fontSize: 12,
+  marginTop: 2,
+},
+
+networkItemActive: {
+  borderColor: theme.colors.accent,
+  borderWidth: 1,
+},
   inputField: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -979,31 +923,5 @@ scanDot: {
   scanAgain: {
     color: theme.colors.accent,
     fontWeight: '600',
-  },
-
-  passwordLabel: {
-    color: theme.colors.textPrimary,
-    marginBottom: 8,
-    marginTop: 12,
-    fontWeight: '600',
-  },
-
-  securityNote: {
-    flexDirection: 'row',
-    gap: 10,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
-    marginTop: 16,
-    marginBottom: 24, // Added bottom padding
-    borderWidth: 1,
-    borderColor: 'rgba(218, 196, 140, 0.35)',
-  },
-
-  securityText: {
-    flex: 1,
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 18,
   },
 });
