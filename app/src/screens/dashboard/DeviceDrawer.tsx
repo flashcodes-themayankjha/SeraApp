@@ -8,7 +8,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import SlideSheet from '../../../../components/SlideSheet';
+import DeviceSheet from '../../../../src/components/DeviceSheet'; // Import DeviceSheet
 import { theme } from '../../theme';
 import * as Haptics from 'expo-haptics';
 
@@ -64,7 +64,7 @@ export default function DeviceDrawer({
   };
 
   return (
-    <SlideSheet visible={visible} onClose={onClose} initialSnapPoint={Dimensions.get('window').height * 0.35}>
+    <DeviceSheet visible={visible} onClose={onClose} initialSnapPoint={Dimensions.get('window').height * 0.35}>
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Devices</Text>
@@ -141,7 +141,7 @@ export default function DeviceDrawer({
           />
         ))}
       </View>
-    </SlideSheet>
+    </DeviceSheet>
   );
 }
 
@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
+    paddingLeft: 20,
   },
   headerTitle: {
     fontSize: 22,
