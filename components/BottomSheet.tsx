@@ -1,6 +1,6 @@
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+import { StyleSheet, Animated, Dimensions } from 'react-native';
 import { useEffect, useRef } from 'react';
-import { theme } from '../theme';
+import { theme } from '../app/src/theme';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
