@@ -81,7 +81,7 @@ export default function SlideSheet({
         lastOffset.current = SNAP.CLOSED;
       });
     }
-  }, [visible]);
+  }, [visible, translateY, backdropOpacity]);
 
   /* =================================================
      PAN / DRAG

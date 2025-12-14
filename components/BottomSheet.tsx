@@ -19,7 +19,7 @@ export function BottomSheet({
       useNativeDriver: true,
       damping: 18,
     }).start();
-  }, [visible]);
+  }, [visible, translateY]);
 
   return (
     <Animated.View

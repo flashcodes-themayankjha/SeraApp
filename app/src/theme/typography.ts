@@ -1,6 +1,14 @@
 // app/src/theme/typography.ts
+import { TextStyle } from 'react-native';
 
-export const typography = {
+type TypographyStyle = {
+  fontSize: number;
+  fontWeight: TextStyle['fontWeight'];
+  letterSpacing?: number;
+  textTransform?: TextStyle['textTransform'];
+};
+
+export const typography: Record<string, TypographyStyle> = {
   title: {
     fontSize: 24,
     fontWeight: '700',

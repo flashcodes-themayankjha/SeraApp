@@ -442,7 +442,7 @@ function ScanningStatusCard() {
     }, 500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [dotBlink, pulse, rotate]);
 
   const rotation = rotate.interpolate({
     inputRange: [0, 1],
@@ -563,7 +563,7 @@ function PrimaryButton({
         useNativeDriver: true,
       })
     ).start();
-  }, [loading]);
+  }, [loading, spin]);
 
   const rotation = spin.interpolate({
     inputRange: [0, 1],
