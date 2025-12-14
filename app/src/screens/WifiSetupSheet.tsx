@@ -12,8 +12,10 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 
 const touchIcon = require('../../../assets/touch.png');
+const successAnimation = require('../assets/lottie/success.json');
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -344,7 +346,7 @@ function StepSuccess({ onFinish }: { onFinish: () => void }) {
     <View style={styles.center}>
       <Text style={styles.step}>STEP 4 OF 4</Text>
 
-      <Illustration />
+      <LottieView source={successAnimation} autoPlay loop style={styles.lottieAnimation} />
 
       <Text style={styles.title}>Connection Successful</Text>
       <Text style={styles.subtitle}>
@@ -810,6 +812,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 24,
+  },
+  lottieAnimation: {
+    width: 150, // Adjust size as needed
+    height: 150, // Adjust size as needed
     marginBottom: 24,
   },
 
