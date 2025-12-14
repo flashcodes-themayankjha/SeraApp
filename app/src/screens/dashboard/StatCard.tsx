@@ -1,15 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import * as Haptics from 'expo-haptics';
 
-export default function StatCard({ icon, label, value }: any) {
+export default function StatCard({ icon, label, value, onPress }: { icon: string; label: string; value: string; onPress?: () => void }) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress && onPress();
+      }}
+      activeOpacity={0.7}
+    >
       <MaterialIcons name={icon} size={26} color={theme.colors.accent} />
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>{value}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

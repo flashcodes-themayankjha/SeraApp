@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import * as Haptics from 'expo-haptics';
 
 type Props = {
   icon: any;
@@ -19,7 +20,10 @@ export default function ActionCard({
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      onPress={onPress}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress && onPress();
+      }}
       style={styles.wrapper}
     >
       <View style={styles.iconBox}>

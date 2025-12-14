@@ -57,7 +57,7 @@ export default function DashboardScreen() {
 
         {/* STATS */}
         <View style={styles.statsRow}>
-          <StatCard icon="battery-charging-full" label="Battery" value="86%" />
+          <StatCard icon="battery-charging-full" label="Battery" value={connectedDevice ? `${connectedDevice.battery}%` : 'N/A'} />
           <StatCard icon="wifi" label="Signal" value="5G" />
           <StatCard icon="thermostat" label="Temp" value="34°C" />
         </View>
