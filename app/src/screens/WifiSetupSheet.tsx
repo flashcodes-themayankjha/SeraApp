@@ -280,6 +280,7 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
           setSsid('Home_Wifi_5G');
           setHasError(false);
         }}
+        isActive={ssid === 'Home_Wifi_5G'} // Pass isActive prop
       />
       <NetworkItem
         name="Sera_Guest"
@@ -288,6 +289,7 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
           setSsid('Sera_Guest');
           setHasError(false);
         }}
+        isActive={ssid === 'Sera_Guest'} // Pass isActive prop
       />
       <NetworkItem
         name="Office_Net"
@@ -296,6 +298,7 @@ function StepConfigureWifi({ onNext }: { onNext: () => void }) {
           setSsid('Office_Net');
           setHasError(false);
         }}
+        isActive={ssid === 'Office_Net'} // Pass isActive prop
       />
 
       <PrimaryButton label="Continue" onPress={handleContinue} />
@@ -582,14 +585,16 @@ function NetworkItem({
   name,
   signal,
   onPress,
+  isActive, // New prop
 }: {
   name: string;
   signal: string;
   onPress: () => void;
+  isActive: boolean; // New prop type
 }) {
   return (
     <TouchableOpacity
-      style={styles.networkItem}
+      style={[styles.networkItem, isActive && styles.networkItemActive]} // Apply active style
       onPress={onPress}
       activeOpacity={0.85}
     >
