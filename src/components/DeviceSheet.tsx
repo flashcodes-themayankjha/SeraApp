@@ -21,19 +21,21 @@ const SNAP = {
 };
 
 /* =================================================
-   SLIDE SHEET
+   DEVICE SHEET
 ================================================= */
 
-export default function SlideSheet({
+export default function DeviceSheet({
   visible,
   onClose,
   children,
   enableBackdrop = true,
+  initialSnapPoint, // New prop
 }: {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
   enableBackdrop?: boolean;
+  initialSnapPoint?: number; // Optional prop
 }) {
   const translateY = useRef(
     new Animated.Value(SNAP.CLOSED)
@@ -44,6 +46,7 @@ export default function SlideSheet({
   ).current;
 
   const lastOffset = useRef(SNAP.CLOSED);
+  const handleLayout = useRef({ y: 0, height: 0 }).current; // Store handle layout
 
   /* =================================================
      OPEN / CLOSE
@@ -51,9 +54,10 @@ export default function SlideSheet({
 
   useEffect(() => {
     if (visible) {
+      const targetSnapPoint = initialSnapPoint !== undefined ? initialSnapPoint : SNAP.MID;
       Animated.parallel([
         Animated.spring(translateY, {
-          toValue: SNAP.MID,
+          toValue: targetSnapPoint,
           damping: 22,
           useNativeDriver: true,
         }),
@@ -63,7 +67,7 @@ export default function SlideSheet({
           useNativeDriver: true,
         }),
       ]).start(() => {
-        lastOffset.current = SNAP.MID;
+        lastOffset.current = targetSnapPoint;
       });
     } else {
       Animated.parallel([
@@ -81,7 +85,7 @@ export default function SlideSheet({
         lastOffset.current = SNAP.CLOSED;
       });
     }
-  }, [visible, translateY, backdropOpacity]);
+  }, [visible, translateY, backdropOpacity, initialSnapPoint]); // Add initialSnapPoint to dependencies
 
   /* =================================================
      PAN / DRAG
@@ -89,8 +93,30 @@ export default function SlideSheet({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: (evt, gestureState) => {
+        // Check if touch started within the handle area
+        const touchY = evt.nativeEvent.pageY;
+        const sheetY = translateY.__getValue(); // Current Y position of the sheet
+        const handleAbsoluteY = sheetY + handleLayout.y; // Absolute Y of handle
 
+        return (
+          touchY >= handleAbsoluteY &&
+          touchY <= handleAbsoluteY + handleLayout.height
+        );
+      },
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Check if touch is within handle area and movement is primarily vertical
+        const touchY = evt.nativeEvent.pageY;
+        const sheetY = translateY.__getValue(); // Current Y position of the sheet
+        const handleAbsoluteY = sheetY + handleLayout.y; // Absolute Y of handle
+
+        return (
+          touchY >= handleAbsoluteY &&
+          touchY <= handleAbsoluteY + handleLayout.height &&
+          Math.abs(gestureState.dy) > Math.abs(gestureState.dx) &&
+          Math.abs(gestureState.dy) > 2
+        );
+      },
       onPanResponderMove: (_, gesture) => {
         let nextY = lastOffset.current + gesture.dy;
 
@@ -153,7 +179,13 @@ export default function SlideSheet({
         {...panResponder.panHandlers}
       >
         {/* DRAG HANDLE */}
-        <View style={styles.handleContainer}>
+        <View
+          style={styles.handleContainer}
+          onLayout={event => {
+            handleLayout.y = event.nativeEvent.layout.y;
+            handleLayout.height = event.nativeEvent.layout.height;
+          }}
+        >
           <View style={styles.handle} />
         </View>
 
@@ -198,6 +230,5 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 1,
-    paddingHorizontal: 20,
   },
 });
