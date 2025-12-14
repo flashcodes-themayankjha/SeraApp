@@ -18,7 +18,7 @@ type Device = {
   connected: boolean;
 };
 
-export default function DashboardHero({ device }: { device: Device }) {
+export default function DashboardHero({ device }: { device: Device | null }) {
   const pulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -59,18 +59,31 @@ export default function DashboardHero({ device }: { device: Device }) {
       <Image source={seraImage} style={styles.avatar} />
 
       {/* STATUS PILL */}
-      <View style={styles.statusPill}>
-        <View style={styles.statusDot} />
-        <Text style={styles.statusText}>
-          Connected • {device.battery}%
-        </Text>
-      </View>
+      {device && (
+        <View style={styles.statusPill}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusText}>
+            Connected • {device.battery}%
+          </Text>
+        </View>
+      )}
 
       {/* TEXT */}
-      <Text style={styles.deviceName}>{device.name}</Text>
-      <Text style={styles.deviceSub}>
-        Standby Mode • {device.room}
-      </Text>
+      {device ? (
+        <>
+          <Text style={styles.deviceName}>{device.name}</Text>
+          <Text style={styles.deviceSub}>
+            Standby Mode • {device.room}
+          </Text>
+        </>
+      ) : (
+        <>
+          <Text style={styles.deviceName}>No Device Connected</Text>
+          <Text style={styles.deviceSub}>
+            Please connect a Sera device
+          </Text>
+        </>
+      )}
     </View>
   );
 }

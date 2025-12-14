@@ -46,6 +46,7 @@ export default function SlideSheet({
   ).current;
 
   const lastOffset = useRef(SNAP.CLOSED);
+  const handleLayout = useRef({ y: 0, height: 0 }).current; // Store handle layout
 
   /* =================================================
      OPEN / CLOSE
@@ -92,8 +93,30 @@ export default function SlideSheet({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: (evt, gestureState) => {
+        // Check if touch started within the handle area
+        const touchY = evt.nativeEvent.pageY;
+        const sheetY = translateY.__getValue(); // Current Y position of the sheet
+        const handleAbsoluteY = sheetY + handleLayout.y; // Absolute Y of handle
 
+        return (
+          touchY >= handleAbsoluteY &&
+          touchY <= handleAbsoluteY + handleLayout.height
+        );
+      },
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Check if touch is within handle area and movement is primarily vertical
+        const touchY = evt.nativeEvent.pageY;
+        const sheetY = translateY.__getValue(); // Current Y position of the sheet
+        const handleAbsoluteY = sheetY + handleLayout.y; // Absolute Y of handle
+
+        return (
+          touchY >= handleAbsoluteY &&
+          touchY <= handleAbsoluteY + handleLayout.height &&
+          Math.abs(gestureState.dy) > Math.abs(gestureState.dx) &&
+          Math.abs(gestureState.dy) > 2
+        );
+      },
       onPanResponderMove: (_, gesture) => {
         let nextY = lastOffset.current + gesture.dy;
 
@@ -156,7 +179,13 @@ export default function SlideSheet({
         {...panResponder.panHandlers}
       >
         {/* DRAG HANDLE */}
-        <View style={styles.handleContainer}>
+        <View
+          style={styles.handleContainer}
+          onLayout={event => {
+            handleLayout.y = event.nativeEvent.layout.y;
+            handleLayout.height = event.nativeEvent.layout.height;
+          }}
+        >
           <View style={styles.handle} />
         </View>
 
