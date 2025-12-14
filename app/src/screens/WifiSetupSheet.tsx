@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import SlideSheet from '../../../components/SlideSheet';
 
@@ -84,6 +84,7 @@ export default function WifiSetupSheet({
    HEADER
 ================================================= */
 
+
 function Header({
   step,
   onBack,
@@ -95,16 +96,39 @@ function Header({
 }) {
   return (
     <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} disabled={!onBack}>
-        <Text style={[styles.headerLeft, !onBack && { opacity: 0 }]}>←</Text>
-      </TouchableOpacity>
+      {/* TOP ROW */}
+      <View style={styles.headerTop}>
+        {/* BACK */}
+        <TouchableOpacity
+          onPress={onBack}
+          disabled={!onBack}
+          style={styles.headerSide}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={22}
+            color={theme.colors.textPrimary}
+            style={!onBack && { opacity: 0 }}
+          />
+        </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>Wi-Fi Setup</Text>
+        {/* TITLE */}
+        <Text style={styles.headerTitle}>Wi-Fi Setup</Text>
 
-      <TouchableOpacity onPress={onClose}>
-        <Text style={styles.headerRight}>✕</Text>
-      </TouchableOpacity>
+        {/* CLOSE */}
+        <TouchableOpacity
+          onPress={onClose}
+          style={styles.headerSide}
+        >
+          <FontAwesome
+            name="close"
+            size={22}
+            color={theme.colors.textPrimary}
+          />
+        </TouchableOpacity>
+      </View>
 
+      {/* STEP INDICATOR (BELOW TITLE) */}
       <View style={styles.progressRow}>
         {[1, 2, 3, 4].map(i => (
           <View
@@ -119,7 +143,6 @@ function Header({
     </View>
   );
 }
-
 /* =================================================
    STEP 1 — SCAN
 ================================================= */
@@ -598,53 +621,49 @@ function GhostButton({ label, onPress }: any) {
 
 const styles = StyleSheet.create({
   
+header: {
+  marginBottom: 20,
+},
 
-  header: {
-    marginBottom: theme.spacing.lg,
-  },
+headerTop: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
 
-  headerTitle: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
+headerSide: {
+  width: 40, // keeps title perfectly centered
+  alignItems: 'center',
+},
 
-  headerLeft: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    fontSize: 22,
-    color: theme.colors.textPrimary,
-  },
 
-  headerRight: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    fontSize: 22,
-    color: theme.colors.textPrimary,
-  },
 
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 12,
-    gap: 8,
-  },
+headerTitle: {
+  fontSize: 18,
+  fontWeight: '600',
+  color: theme.colors.textPrimary,
+},
 
-  progressDot: {
-    width: 18,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: theme.colors.border,
-  },
+progressRow: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  marginTop: 10,
+  gap: 8,
+},
 
-  progressActive: {
-    backgroundColor: theme.colors.accent,
-  },
+progressDot: {
+  width: 18,
+  height: 3,
+  borderRadius: 2,
+  backgroundColor: theme.colors.border,
+},
 
-  center: {
+progressActive: {
+  backgroundColor: theme.colors.accent,
+},
+
+
+center: {
     alignItems: 'center',
     paddingTop: 24,
   },
